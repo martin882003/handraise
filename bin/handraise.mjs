@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pitwall's command line. Four verbs and no configuration file: the panel keeps
+// Handraise's command line. Four verbs and no configuration file: the panel keeps
 // no state of its own, so there is nothing to configure that tmux doesn't
 // already know.
 
@@ -9,7 +9,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-import { createPitwall } from '../src/server.mjs';
+import { createHandraise } from '../src/server.mjs';
 import { sessions, start } from '../src/control.mjs';
 import { stateDir } from '../src/state.mjs';
 
@@ -37,7 +37,7 @@ function requireTmux() {
   try {
     execFileSync('tmux', ['-V'], { stdio: 'ignore' });
   } catch {
-    console.error('pitwall needs tmux on your PATH. Install it and try again.');
+    console.error('handraise needs tmux on your PATH. Install it and try again.');
     process.exit(1);
   }
 }
@@ -45,11 +45,11 @@ function requireTmux() {
 // ── serve ────────────────────────────────────────────────────────────────────
 function serve() {
   requireTmux();
-  const port = Number(flag('port', process.env.PITWALL_PORT || 4177));
+  const port = Number(flag('port', process.env.HANDRAISE_PORT || 4177));
   const host = flag('host', '127.0.0.1');
-  const server = createPitwall();
+  const server = createHandraise();
   server.listen(port, host, () => {
-    console.log(`pitwall on http://${host}:${port}`);
+    console.log(`handraise on http://${host}:${port}`);
     if (host !== '127.0.0.1' && host !== 'localhost') {
       console.log('⚠️  bound to a non-local address: this drives real agents, put auth in front of it.');
     }
@@ -64,7 +64,7 @@ function startSession() {
   requireTmux();
   const [slug] = positional();
   if (!slug) {
-    console.error('usage: pitwall start <name> [--dir <path>] [--agent claude|codex] [--command "<cli>"]');
+    console.error('usage: handraise start <name> [--dir <path>] [--agent claude|codex] [--command "<cli>"]');
     process.exit(1);
   }
   const agent = flag('agent', 'claude');
@@ -74,14 +74,14 @@ function startSession() {
   console.log(result.existed
     ? `${slug} was already running (${result.tmux})`
     : `${slug} started in ${cwd} (${result.tmux})`);
-  console.log('open the panel with: pitwall serve');
+  console.log('open the panel with: handraise serve');
 }
 
 // ── list ─────────────────────────────────────────────────────────────────────
 function list() {
   requireTmux();
   const live = sessions();
-  if (!live.length) return console.log('no pitwall sessions running');
+  if (!live.length) return console.log('no handraise sessions running');
   for (const session of live) {
     console.log(`${session.slug}\t${session.agent}\t${session.cwd ?? ''}`);
   }
@@ -93,9 +93,9 @@ function list() {
 // question you can answer from the browser.
 //
 // They are installed at user level because agents run in whatever repo you're
-// in. Both are inert outside a pitwall session — the attention hook returns when
-// tmux does not carry our prefix, and the permission hook returns unless PITWALL
-// is set in its environment, which only `pitwall start` does. A session you open
+// in. Both are inert outside a handraise session — the attention hook returns when
+// tmux does not carry our prefix, and the permission hook returns unless HANDRAISE
+// is set in its environment, which only `handraise start` does. A session you open
 // in your own terminal keeps its native dialog.
 const ATTENTION_EVENTS = ['UserPromptSubmit', 'PostToolUse', 'PermissionDenied', 'Stop', 'Notification', 'SessionEnd'];
 
@@ -110,7 +110,7 @@ function installHooks() {
   let settings = {};
   try {
     settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
-    writeFileSync(`${settingsPath}.pitwall-backup`, JSON.stringify(settings, null, 2));
+    writeFileSync(`${settingsPath}.handraise-backup`, JSON.stringify(settings, null, 2));
   } catch { /* no settings yet: we create one */ }
 
   settings.hooks ??= {};
@@ -131,8 +131,8 @@ function installHooks() {
   mkdirSync(dirname(settingsPath), { recursive: true });
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
   console.log(`hooks installed in ${target}`);
-  console.log(`wired into ${settingsPath} (previous version saved as settings.json.pitwall-backup)`);
-  console.log('they stay inert outside pitwall sessions, so your own terminals are untouched.');
+  console.log(`wired into ${settingsPath} (previous version saved as settings.json.handraise-backup)`);
+  console.log('they stay inert outside handraise sessions, so your own terminals are untouched.');
 }
 
 // ── doctor ───────────────────────────────────────────────────────────────────
@@ -145,9 +145,9 @@ function doctor() {
   catch { checks.push(['python3', 'MISSING — needed by the hooks']); }
   const settingsPath = join(homedir(), '.claude', 'settings.json');
   try {
-    const wired = JSON.stringify(JSON.parse(readFileSync(settingsPath, 'utf8')).hooks ?? {}).includes('pitwall');
-    checks.push(['hooks', wired ? 'wired' : 'not wired — run: pitwall install-hooks']);
-  } catch { checks.push(['hooks', 'not wired — run: pitwall install-hooks']); }
+    const wired = JSON.stringify(JSON.parse(readFileSync(settingsPath, 'utf8')).hooks ?? {}).includes('handraise');
+    checks.push(['hooks', wired ? 'wired' : 'not wired — run: handraise install-hooks']);
+  } catch { checks.push(['hooks', 'not wired — run: handraise install-hooks']); }
   checks.push(['state', stateDir()]);
   for (const [name, value] of checks) console.log(`${name.padEnd(9)} ${value}`);
 }
@@ -157,11 +157,11 @@ const VERBS = { serve: serve, start: startSession, list, 'install-hooks': instal
 if (!VERBS[verb]) {
   console.error(`unknown command: ${verb}\n`);
   console.error('usage:');
-  console.error('  pitwall serve [--port 4177] [--host 127.0.0.1]');
-  console.error('  pitwall start <name> [--dir <path>] [--agent claude|codex] [--command "<cli>"]');
-  console.error('  pitwall list');
-  console.error('  pitwall install-hooks');
-  console.error('  pitwall doctor');
+  console.error('  handraise serve [--port 4177] [--host 127.0.0.1]');
+  console.error('  handraise start <name> [--dir <path>] [--agent claude|codex] [--command "<cli>"]');
+  console.error('  handraise list');
+  console.error('  handraise install-hooks');
+  console.error('  handraise doctor');
   process.exit(1);
 }
 VERBS[verb]();

@@ -51,17 +51,17 @@ URGENT = {"Notification"}
 
 
 def state_dir() -> Path:
-    """Where pitwall keeps its runtime state. One directory, no repo required."""
-    root = os.environ.get("PITWALL_HOME") or str(Path.home() / ".pitwall")
+    """Where handraise keeps its runtime state. One directory, no repo required."""
+    root = os.environ.get("HANDRAISE_HOME") or str(Path.home() / ".handraise")
     return Path(root)
 
 
 def session_slug() -> str | None:
-    """The pitwall session this hook is running inside, asked to tmux itself.
+    """The handraise session this hook is running inside, asked to tmux itself.
 
     The pane knows its own name, so there is nothing to infer from paths: if the
     tmux session carries our prefix, its slug is the answer, and if we are not
-    inside a pitwall session there is nothing to report.
+    inside a handraise session there is nothing to report.
     """
     if not os.environ.get("TMUX"):
         return None
@@ -72,7 +72,7 @@ def session_slug() -> str | None:
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return None
-    return name[len("pitwall-"):] if name.startswith("pitwall-") else None
+    return name[len("handraise-"):] if name.startswith("handraise-") else None
 
 
 def notify(title: str, body: str, urgent: bool, key: str) -> None:
@@ -88,8 +88,8 @@ def notify(title: str, body: str, urgent: bool, key: str) -> None:
     seconds = 15 if urgent else 8
     try:
         subprocess.run(
-            ["notify-send", "-a", "Pitwall", "-u", "normal", "-t", str(seconds * 1000),
-             "-h", f"string:x-canonical-private-synchronous:pitwall-{key}", title, body],
+            ["notify-send", "-a", "Handraise", "-u", "normal", "-t", str(seconds * 1000),
+             "-h", f"string:x-canonical-private-synchronous:handraise-{key}", title, body],
             timeout=5, check=False,
         )
     except (OSError, subprocess.SubprocessError):
@@ -107,7 +107,7 @@ def main() -> None:
 
     slug = session_slug()
     if slug is None:
-        return  # not running inside a pitwall session: nothing to report
+        return  # not running inside a handraise session: nothing to report
 
     directory = state_dir() / "attention"
     directory.mkdir(parents=True, exist_ok=True)
@@ -146,7 +146,7 @@ def main() -> None:
 
     if event in ALWAYS_NOTIFY or elapsed >= LONG_TURN:
         detail = payload.get("message") or reason
-        notify(f"Pitwall · {slug}", str(detail)[:200], event in URGENT, slug)
+        notify(f"Handraise · {slug}", str(detail)[:200], event in URGENT, slug)
 
 
 if __name__ == "__main__":

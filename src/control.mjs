@@ -20,7 +20,7 @@
 import { execFileSync } from 'node:child_process';
 
 /** Our own prefix: never touch tmux sessions that aren't ours. */
-export const PREFIX = 'pitwall-';
+export const PREFIX = 'handraise-';
 export const tmuxName = (slug) => `${PREFIX}${slug}`;
 
 /**
@@ -31,10 +31,10 @@ export const tmuxName = (slug) => `${PREFIX}${slug}`;
  * and a fact that outlives the thing it describes is a second source of truth.
  * Here the fact is born and dies with the session.
  */
-export const OPT_AGENT = '@pitwall-agent';
-export const OPT_WRAPUP = '@pitwall-wrapup';
-export const OPT_ERROR = '@pitwall-error';
-export const OPT_CWD = '@pitwall-cwd';
+export const OPT_AGENT = '@handraise-agent';
+export const OPT_WRAPUP = '@handraise-wrapup';
+export const OPT_ERROR = '@handraise-error';
+export const OPT_CWD = '@handraise-cwd';
 
 /**
  * Allowed keys, and the list is closed on purpose: `send-keys` without a filter
@@ -100,7 +100,7 @@ export function exists(slug, run = tmux) {
 export function holdError(command) {
   return `( ${command} ); code=$?; if [ "$code" -ne 0 ]; then `
     + `tmux set-option ${OPT_ERROR} "$code" 2>/dev/null || true; `
-    + `printf '\\n[pitwall] the agent exited with code %s; fix the cause and start it again\\n' "$code"; `
+    + `printf '\\n[handraise] the agent exited with code %s; fix the cause and start it again\\n' "$code"; `
     + 'exec sleep infinity; fi';
 }
 
@@ -117,7 +117,7 @@ export function start({ slug, cwd, command = 'claude', agent = 'claude', env = {
   if (previous && !previous.error) return { existed: true, tmux: tmuxName(slug) };
   if (previous?.error) run(['kill-session', '-t', tmuxName(slug)]);
 
-  const exported = Object.entries({ PITWALL: '1', ...env })
+  const exported = Object.entries({ HANDRAISE: '1', ...env })
     .map(([key, value]) => `${key}=${JSON.stringify(String(value))}`)
     .join(' ');
   const script = holdError(`export ${exported}; ${command}`);

@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pitwall</title>
+<title>Handraise</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d0f14'/%3E%3Crect x='6' y='7' width='4' height='18' rx='1.4' fill='%23f5a524'/%3E%3Crect x='13' y='7' width='4' height='18' rx='1.4' fill='%236ea8fe'/%3E%3Crect x='20' y='7' width='4' height='18' rx='1.4' fill='%2351d88a'/%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #0d0f14;
@@ -34,7 +35,13 @@
   h1 { font-size: 15px; margin: 0; letter-spacing: .14em; text-transform: uppercase; }
   .count { color: var(--muted); }
   .count b { color: var(--blocked); }
-  main { padding: 22px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  /* `align-items: start` so a card with a pending permission grows and the ones
+     beside it keep their own height, instead of every card stretching to match
+     the tallest and floating its text in the middle. */
+  main {
+    padding: 22px; display: grid; gap: 14px; align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
   .card {
     background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 14px 16px; display: grid; gap: 10px; cursor: pointer;
@@ -94,7 +101,7 @@
 </head>
 <body>
 <header>
-  <h1>Pitwall</h1>
+  <h1>Handraise</h1>
   <span class="count" id="count"></span>
 </header>
 
@@ -153,15 +160,19 @@ const ago = (seconds) => {
 const LABEL = { blocked: 'needs you', waiting: 'waiting', wrapping: 'wrapping up', working: 'working' };
 
 function render(state) {
-  count.textContent = state.sessions.length
-    ? (state.needsYou ? `` : 'all working')
-    : '';
-  if (state.needsYou) count.innerHTML = `<b>${state.needsYou}</b> need${state.needsYou === 1 ? 's' : ''} you`;
+  count.textContent = '';
+  if (state.needsYou) {
+    const n = document.createElement('b');
+    n.textContent = String(state.needsYou);
+    count.append(n, ` need${state.needsYou === 1 ? 's' : ''} you`);
+  } else if (state.sessions.length) {
+    count.textContent = 'all working';
+  }
 
   if (!state.sessions.length) {
     grid.innerHTML = `<p class="empty">No sessions yet. Start one with
-      <code>pitwall start &lt;name&gt;</code>, or from any directory:
-      <code>pitwall start api --dir ~/code/api</code></p>`;
+      <code>handraise start &lt;name&gt;</code>, or from any directory:
+      <code>handraise start api --dir ~/code/api</code></p>`;
     return;
   }
 

@@ -1,4 +1,4 @@
-# Pitwall
+# Handraise
 
 **Every coding agent on your machine, in one place.**
 
@@ -6,7 +6,7 @@ If you run more than one coding agent at a time, the thing that breaks your day
 isn't the agents — it's walking terminal to terminal to find the one sitting
 there waiting for permission.
 
-Pitwall puts all of them in one view: what each one is doing, how long it's been
+Handraise puts all of them in one view: what each one is doing, how long it's been
 at it, and the permission request as something you answer right there. When
 reading the status isn't enough, the live terminal is one click away and you can
 type into it.
@@ -28,16 +28,16 @@ terminal and carry on.
 ## Install
 
 ```bash
-npm install -g pitwall     # or: git clone && npm link
-pitwall install-hooks      # wires the attention + permission hooks
-pitwall serve              # http://127.0.0.1:4177
+npm install -g handraise     # or: git clone && npm link
+handraise install-hooks      # wires the attention + permission hooks
+handraise serve              # http://127.0.0.1:4177
 ```
 
-Then start an agent through pitwall so the panel can drive it:
+Then start an agent through handraise so the panel can drive it:
 
 ```bash
-pitwall start api --dir ~/code/api
-pitwall start web --dir ~/code/web --agent codex
+handraise start api --dir ~/code/api
+handraise start web --dir ~/code/web --agent codex
 ```
 
 Requires **tmux**, **Node 20+** and **python3**. Works with Claude Code and
@@ -58,14 +58,14 @@ Everything above works without them except the two things that matter most, so
   in the browser, and the hook returns `allow` or `deny`. **No keystrokes are
   guessed and no screen is parsed** — you're answering the request itself.
 
-Both are installed at user level and both are inert outside pitwall: the
+Both are installed at user level and both are inert outside handraise: the
 attention hook returns unless tmux carries our prefix, and the permission hook
-returns unless `PITWALL=1` is set, which only `pitwall start` does. Sessions you
+returns unless `HANDRAISE=1` is set, which only `handraise start` does. Sessions you
 open in your own terminal keep their native dialog and never wait on a browser
 you aren't looking at.
 
 Your previous `~/.claude/settings.json` is saved next to it as
-`settings.json.pitwall-backup`.
+`settings.json.handraise-backup`.
 
 ## How it stays honest
 
@@ -88,7 +88,7 @@ A few rules the code holds to, because each one was a bug first:
 
 ## Security
 
-Pitwall binds to `127.0.0.1` and has no authentication, because it drives real
+Handraise binds to `127.0.0.1` and has no authentication, because it drives real
 agents with real permissions on your machine. If you point `--host` at anything
 routable, put something that authenticates in front of it. There is no relay and
 nothing leaves your machine.

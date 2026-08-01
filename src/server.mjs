@@ -37,7 +37,7 @@ function body(request) {
   });
 }
 
-export function createPitwall({ root = stateDir() } = {}) {
+export function createHandraise({ root = stateDir() } = {}) {
   mkdirSync(join(root, 'attention'), { recursive: true });
   mkdirSync(join(root, 'permissions'), { recursive: true });
 

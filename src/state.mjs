@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { sessions as tmuxSessions } from './control.mjs';
 
 export function stateDir() {
-  return process.env.PITWALL_HOME || join(homedir(), '.pitwall');
+  return process.env.HANDRAISE_HOME || join(homedir(), '.handraise');
 }
 
 const read = (path, fallback = '') => {

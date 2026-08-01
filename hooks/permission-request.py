@@ -3,7 +3,7 @@
 
 `PermissionRequest` is synchronous: the agent sits there waiting for the decision
 this hook returns. While it waits, the request lives as a typed JSON file in the
-pitwall state directory; the panel writes the answer and this process returns it
+handraise state directory; the panel writes the answer and this process returns it
 as `allow` or `deny`. No keystrokes are guessed and no screen is parsed — the
 buttons you see are the request itself.
 
@@ -21,8 +21,8 @@ from pathlib import Path
 
 from attention import notify, session_slug, state_dir
 
-WAIT_SECONDS = float(os.environ.get("PITWALL_PERMISSION_WAIT_SECONDS", 8 * 3600))
-POLL_SECONDS = float(os.environ.get("PITWALL_PERMISSION_POLL_SECONDS", 0.25))
+WAIT_SECONDS = float(os.environ.get("HANDRAISE_PERMISSION_WAIT_SECONDS", 8 * 3600))
+POLL_SECONDS = float(os.environ.get("HANDRAISE_PERMISSION_POLL_SECONDS", 0.25))
 
 
 def safe_id(value: str) -> str:
@@ -65,7 +65,7 @@ def summary(tool: str, tool_input: dict) -> str:
 def decision(behavior: str, message: str = "") -> dict:
     result = {"behavior": behavior}
     if behavior == "deny":
-        result["message"] = message or "The permission was denied from Pitwall."
+        result["message"] = message or "The permission was denied from Handraise."
     return {
         "hookSpecificOutput": {
             "hookEventName": "PermissionRequest",
@@ -75,10 +75,10 @@ def decision(behavior: str, message: str = "") -> dict:
 
 
 def main() -> None:
-    # Only a session started by pitwall has somewhere to show and resolve the
+    # Only a session started by handraise has somewhere to show and resolve the
     # request. One you opened in your own terminal keeps the agent's native
     # dialog and never waits on a panel you aren't using.
-    if os.environ.get("PITWALL") != "1":
+    if os.environ.get("HANDRAISE") != "1":
         return
     slug = session_slug()
     if slug is None:
@@ -115,7 +115,7 @@ def main() -> None:
         "suggestions": payload.get("permission_suggestions") or [],
     }
     atomic_json(request_path, request)
-    notify(f"Pitwall · {slug}", request["summary"], True, slug)
+    notify(f"Handraise · {slug}", request["summary"], True, slug)
 
     deadline = time.monotonic() + max(0, WAIT_SECONDS)
     while time.monotonic() < deadline:
