@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitwall</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #151922;
+    --panel-2: #1b2029;
+    --line: #262d3a;
+    --text: #dfe4ee;
+    --muted: #8b94a7;
+    --blocked: #f5a524;
+    --waiting: #6ea8fe;
+    --wrapping: #b89cff;
+    --working: #51d88a;
+    --danger: #ff6b72;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 14px;
+    padding: 18px 22px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  h1 { font-size: 15px; margin: 0; letter-spacing: .14em; text-transform: uppercase; }
+  .count { color: var(--muted); }
+  .count b { color: var(--blocked); }
+  main { padding: 22px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px 16px; display: grid; gap: 10px; cursor: pointer;
+    border-left: 3px solid var(--line);
+  }
+  .card:hover { background: var(--panel-2); }
+  .card.blocked { border-left-color: var(--blocked); }
+  .card.waiting { border-left-color: var(--waiting); }
+  .card.wrapping { border-left-color: var(--wrapping); }
+  .card.working { border-left-color: var(--working); }
+  .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+  .slug { font-weight: 700; }
+  .tag {
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted);
+  }
+  .blocked .tag { color: var(--blocked); border-color: color-mix(in oklab, var(--blocked) 40%, transparent); }
+  .waiting .tag { color: var(--waiting); border-color: color-mix(in oklab, var(--waiting) 40%, transparent); }
+  .wrapping .tag { color: var(--wrapping); border-color: color-mix(in oklab, var(--wrapping) 40%, transparent); }
+  .working .tag { color: var(--working); border-color: color-mix(in oklab, var(--working) 40%, transparent); }
+  .meta { color: var(--muted); font-size: 12px; word-break: break-all; }
+  .ask {
+    background: #221a08; border: 1px solid color-mix(in oklab, var(--blocked) 35%, transparent);
+    border-radius: 8px; padding: 10px 12px; display: grid; gap: 9px;
+  }
+  .ask code { display: block; white-space: pre-wrap; word-break: break-all; color: #ffd591; font-size: 12px; max-height: 160px; overflow: auto; }
+  .btns { display: flex; gap: 8px; }
+  button {
+    font: inherit; font-size: 12px; padding: 6px 12px; border-radius: 7px; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  }
+  button:hover { border-color: var(--muted); }
+  button.allow { background: color-mix(in oklab, var(--working) 18%, var(--panel-2)); border-color: color-mix(in oklab, var(--working) 45%, transparent); }
+  button.deny { background: color-mix(in oklab, var(--danger) 16%, var(--panel-2)); border-color: color-mix(in oklab, var(--danger) 45%, transparent); }
+  .empty { color: var(--muted); padding: 40px 22px; grid-column: 1 / -1; }
+  .empty code { color: var(--text); background: var(--panel); padding: 2px 6px; border-radius: 5px; }
+
+  dialog {
+    width: min(1180px, 94vw); max-height: 90vh; padding: 0; border: 1px solid var(--line);
+    border-radius: 12px; background: var(--panel); color: var(--text);
+  }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  .drawer { display: grid; grid-template-rows: auto 1fr auto; max-height: 90vh; }
+  .drawer > header { border-bottom: 1px solid var(--line); background: var(--panel); position: static; }
+  .term {
+    margin: 0; padding: 14px 16px; overflow: auto; background: #0b0d12;
+    white-space: pre-wrap; word-break: break-word; font-size: 12.5px; line-height: 1.45; min-height: 40vh;
+  }
+  .compose { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .compose input {
+    flex: 1 1 320px; font: inherit; padding: 8px 11px; border-radius: 7px;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  }
+  .compose input:focus { outline: none; border-color: var(--waiting); }
+  .spacer { flex: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pitwall</h1>
+  <span class="count" id="count"></span>
+</header>
+
+<main id="grid"></main>
+
+<dialog id="drawer">
+  <div class="drawer">
+    <header>
+      <div class="row" style="width:100%">
+        <div>
+          <div class="slug" id="d-slug"></div>
+          <div class="meta" id="d-meta"></div>
+        </div>
+        <div class="btns">
+          <button id="d-wrapup" title="Ask the agent to finish and write down where it got to">Wrap up</button>
+          <button id="d-close">Close</button>
+        </div>
+      </div>
+    </header>
+    <pre class="term" id="d-term"></pre>
+    <div class="compose">
+      <input id="d-input" placeholder="Type to the agent, Enter to send" autocomplete="off" spellcheck="false">
+      <button data-key="Enter">Enter</button>
+      <button data-key="Escape">Esc</button>
+      <button data-key="Up">↑</button>
+      <button data-key="Down">↓</button>
+      <button data-key="C-c">Ctrl-C</button>
+    </div>
+  </div>
+</dialog>
+
+<script type="module">
+const grid = document.getElementById('grid');
+const count = document.getElementById('count');
+const drawer = document.getElementById('drawer');
+const term = document.getElementById('d-term');
+let open = null;      // slug of the session shown in the drawer
+let pinned = true;    // stick to the bottom of the pane unless the user scrolled up
+
+const api = async (path, options) => {
+  const response = await fetch(path, {
+    ...options,
+    headers: options?.body ? { 'content-type': 'application/json' } : undefined,
+  });
+  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || response.statusText);
+  return response.json();
+};
+
+const ago = (seconds) => {
+  if (!seconds) return '';
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+};
+
+const LABEL = { blocked: 'needs you', waiting: 'waiting', wrapping: 'wrapping up', working: 'working' };
+
+function render(state) {
+  count.textContent = state.sessions.length
+    ? (state.needsYou ? `` : 'all working')
+    : '';
+  if (state.needsYou) count.innerHTML = `<b>${state.needsYou}</b> need${state.needsYou === 1 ? 's' : ''} you`;
+
+  if (!state.sessions.length) {
+    grid.innerHTML = `<p class="empty">No sessions yet. Start one with
+      <code>pitwall start &lt;name&gt;</code>, or from any directory:
+      <code>pitwall start api --dir ~/code/api</code></p>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  for (const session of state.sessions) {
+    const card = document.createElement('article');
+    card.className = `card ${session.status}`;
+    card.tabIndex = 0;
+
+    const head = document.createElement('div');
+    head.className = 'row';
+    head.innerHTML = `<span class="slug"></span><span class="tag">${LABEL[session.status]}${
+      session.waitingSeconds ? ` · ${ago(session.waitingSeconds)}` : ''}</span>`;
+    head.querySelector('.slug').textContent = session.slug;
+    card.append(head);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = [session.agent, session.cwd, session.activity ? `seen ${session.activity.minutesAgo}m ago` : null]
+      .filter(Boolean).join(' · ');
+    card.append(meta);
+
+    if (session.status !== 'blocked' && session.reason) {
+      const reason = document.createElement('div');
+      reason.className = 'meta';
+      reason.textContent = session.reason;
+      card.append(reason);
+    }
+
+    if (session.permission) card.append(askBlock(session));
+
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('button')) return;
+      show(session.slug);
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); show(session.slug); }
+    });
+    grid.append(card);
+  }
+}
+
+// The request itself, not a guess at it: the tool and the exact input the agent
+// is asking to run. Deciding from a summary is how you approve the wrong thing.
+function askBlock(session) {
+  const { permission } = session;
+  const box = document.createElement('div');
+  box.className = 'ask';
+
+  const title = document.createElement('div');
+  title.textContent = `${permission.tool?.name || 'tool'} · waiting ${ago(permission.waitingSeconds)}`;
+  box.append(title);
+
+  const code = document.createElement('code');
+  const input = permission.tool?.input ?? {};
+  code.textContent = input.command || input.file_path || input.url || JSON.stringify(input, null, 1);
+  box.append(code);
+
+  const buttons = document.createElement('div');
+  buttons.className = 'btns';
+  for (const [label, behavior, css] of [['Allow once', 'allow', 'allow'], ['Deny', 'deny', 'deny']]) {
+    const button = document.createElement('button');
+    button.className = css;
+    button.textContent = label;
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        await api(`/api/permission/${encodeURIComponent(permission.key)}`, {
+          method: 'POST', body: JSON.stringify({ id: permission.id, behavior }),
+        });
+      } catch (error) { alert(error.message); button.disabled = false; }
+    });
+    buttons.append(button);
+  }
+  box.append(buttons);
+  return box;
+}
+
+async function show(slug) {
+  open = slug;
+  pinned = true;
+  document.getElementById('d-slug').textContent = slug;
+  if (!drawer.open) drawer.showModal();
+  await refreshPane();
+  document.getElementById('d-input').focus();
+}
+
+async function refreshPane() {
+  if (!open) return;
+  try {
+    const { html } = await api(`/api/session/${encodeURIComponent(open)}/pane?lines=400`);
+    const atBottom = term.scrollTop + term.clientHeight >= term.scrollHeight - 40;
+    term.innerHTML = html;
+    if (pinned || atBottom) term.scrollTop = term.scrollHeight;
+  } catch (error) {
+    term.textContent = error.message;
+  }
+}
+
+term.addEventListener('scroll', () => {
+  pinned = term.scrollTop + term.clientHeight >= term.scrollHeight - 40;
+});
+
+document.getElementById('d-close').addEventListener('click', () => { open = null; drawer.close(); });
+drawer.addEventListener('close', () => { open = null; });
+
+document.getElementById('d-input').addEventListener('keydown', async (event) => {
+  if (event.key !== 'Enter') return;
+  const field = event.currentTarget;
+  const text = field.value;
+  if (!text) return;
+  field.value = '';
+  try {
+    await api(`/api/session/${encodeURIComponent(open)}/text`, {
+      method: 'POST', body: JSON.stringify({ text }),
+    });
+  } catch (error) { alert(error.message); field.value = text; }
+  setTimeout(refreshPane, 220);
+});
+
+for (const button of document.querySelectorAll('.compose button[data-key]')) {
+  button.addEventListener('click', async () => {
+    try {
+      await api(`/api/session/${encodeURIComponent(open)}/key`, {
+        method: 'POST', body: JSON.stringify({ key: button.dataset.key }),
+      });
+    } catch (error) { alert(error.message); }
+    setTimeout(refreshPane, 220);
+  });
+}
+
+document.getElementById('d-wrapup').addEventListener('click', async () => {
+  if (!confirm(`Ask ${open} to wrap up? It finishes its turn and writes down where it got to.`)) return;
+  try { await api(`/api/session/${encodeURIComponent(open)}/wrapup`, { method: 'POST', body: '{}' }); }
+  catch (error) { alert(error.message); }
+});
+
+// State is pushed, not polled: a permission request shows up the moment the hook
+// writes it. The pane is the one thing we do poll, and only while it's on screen.
+const stream = new EventSource('/api/stream');
+stream.addEventListener('message', (event) => {
+  const state = JSON.parse(event.data);
+  render(state);
+  const shown = state.sessions.find((s) => s.slug === open);
+  document.getElementById('d-meta').textContent = shown
+    ? [shown.agent, shown.cwd].filter(Boolean).join(' · ') : '';
+});
+setInterval(() => { if (open && drawer.open) refreshPane(); }, 1200);
+</script>
+</body>
+</html>

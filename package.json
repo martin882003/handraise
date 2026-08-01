@@ -1,0 +1,19 @@
+{
+  "name": "pitwall",
+  "version": "0.1.0",
+  "description": "Every coding agent on your machine, in one place. Watch them, talk to them, and answer their permission prompts without hunting for the right terminal.",
+  "type": "module",
+  "bin": { "pitwall": "bin/pitwall.mjs" },
+  "files": ["bin", "src", "public", "hooks", "README.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node bin/pitwall.mjs serve",
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "claude-code", "codex", "coding-agents", "tmux", "dashboard",
+    "ai-agents", "developer-tools", "terminal"
+  ],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/martinherran/pitwall.git" }
+}
