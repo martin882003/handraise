@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { procAlive } from './state.mjs';
@@ -42,6 +42,31 @@ function parseComponent(path, fallbackSlug) {
     since: meta.desde || meta.since || '',
     sections: sections(markdown),
   };
+}
+
+function componentSlug(value) {
+  return String(value || '')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'component';
+}
+
+export function createComponent(repository, { title, slug } = {}) {
+  const cleanTitle = String(title || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+  if (!cleanTitle) throw new Error('component title is required');
+  const componentDirectory = join(repository.path, repository.adapter === 'director' ? '.claude/components' : '.handraise/components');
+  mkdirSync(componentDirectory, { recursive: true });
+  const existing = new Set(listMarkdown(componentDirectory).map((name) => parseComponent(join(componentDirectory, name), name.replace(/\.md$/, '')).slug));
+  const base = componentSlug(slug || cleanTitle);
+  let candidate = base;
+  let suffix = 2;
+  while (existing.has(candidate)) candidate = `${base}-${suffix++}`;
+  const today = new Date().toISOString().slice(0, 10);
+  const frontmatter = repository.adapter === 'director'
+    ? `slug: ${candidate}\ntitulo: ${cleanTitle}\nestado: activo\norden: 99\ndesde: ${today}`
+    : `slug: ${candidate}\ntitle: ${cleanTitle}\nstate: active\norder: 99\nsince: ${today}`;
+  const path = join(componentDirectory, `${candidate}.md`);
+  writeFileSync(path, `---\n${frontmatter}\n---\n\n## Scope\n\nDefine the scope of this component.\n`);
+  return parseComponent(path, candidate);
 }
 
 export function renameComponent(repository, slug, title) {

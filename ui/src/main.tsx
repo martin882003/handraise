@@ -544,22 +544,13 @@ function EmptyRepositoryHome({ onConnect }: { onConnect: () => void }) {
   );
 }
 
-function InitializeRepository({ repository, onInitialize }: { repository: Repository; onInitialize: () => Promise<void> }) {
-  return (
-    <div class="empty-state action-empty">
-      <span>This repository is connected but has no Handraise project metadata yet.</span>
-      <button class="primary" onClick={() => void onInitialize()}>Initialize repository</button>
-    </div>
-  );
-}
-
 function ComponentsView({
-  repository, onInitialize, onOpen, onRename,
-}: { repository: Repository; onInitialize: () => Promise<void>; onOpen: (slug: string) => void; onRename: (slug: string) => Promise<void> }) {
+  repository, onInitialize, onOpen, onRename, onCreate,
+}: { repository: Repository; onInitialize: () => Promise<void>; onOpen: (slug: string) => void; onRename: (slug: string) => Promise<void>; onCreate: () => Promise<void> }) {
   if (repository.adapter === 'uninitialized') {
-    return <InitializeRepository repository={repository} onInitialize={onInitialize} />;
+    return <div class="empty-state action-empty"><span>This repository is connected but has no Handraise project metadata yet.</span><div class="button-row"><button class="primary" onClick={() => void onInitialize()}>Initialize repository</button><button onClick={() => void onCreate()}>New component</button></div></div>;
   }
-  if (!repository.components.length) return <p class="empty-state">No components registered in this repository.</p>;
+  if (!repository.components.length) return <div class="empty-state action-empty component-empty-state"><span>No components registered in this repository.</span><button class="primary" onClick={() => void onCreate()}>New component</button></div>;
   return (
     <section class="component-grid">
       {repository.components.map((component) => (
@@ -586,6 +577,87 @@ function ComponentsView({
         </article>
       ))}
     </section>
+  );
+}
+
+interface ComponentDialogState {
+  mode: 'create' | 'rename';
+  initial: string;
+  slug?: string;
+}
+
+function ComponentNameDialog({
+  state, onCancel, onSubmit,
+}: {
+  state: ComponentDialogState;
+  onCancel: () => void;
+  onSubmit: (title: string) => Promise<void>;
+}) {
+  const [value, setValue] = useState(state.initial);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const submit = async () => {
+    const title = value.trim();
+    if (!title) {
+      setError('Enter a component name.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSubmit(title);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      class="component-name-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !saving) onCancel();
+      }}
+    >
+      <section class="component-name-dialog" role="dialog" aria-modal="true" aria-labelledby="component-name-title">
+        <header>
+          <div>
+            <p class="section-kicker">{state.mode === 'create' ? 'New component' : 'Rename component'}</p>
+            <h2 id="component-name-title">{state.mode === 'create' ? 'Create a component' : 'Update component name'}</h2>
+          </div>
+          <button type="button" aria-label="Close" onClick={onCancel} disabled={saving}>×</button>
+        </header>
+        <p class="component-name-help">{state.mode === 'create' ? 'Give this component a clear name.' : 'Choose the name shown across this repository.'}</p>
+        <label>
+          <span>Component name</span>
+          <input
+            ref={inputRef}
+            value={value}
+            disabled={saving}
+            onInput={(event) => setValue(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') void submit();
+              if (event.key === 'Escape' && !saving) onCancel();
+            }}
+          />
+        </label>
+        {error && <p class="form-error" role="alert">{error}</p>}
+        <footer>
+          <button type="button" onClick={onCancel} disabled={saving}>Cancel</button>
+          <button class="primary" type="button" onClick={() => void submit()} disabled={saving || !value.trim()}>
+            {saving ? 'Saving…' : state.mode === 'create' ? 'Create component' : 'Save name'}
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 }
 
@@ -779,8 +851,8 @@ function SettingsView({
   const startPairing = async () => setPairing(await api<PairingInfo>('/api/auth/pairing', { method: 'POST', body: '{}' }));
   const copyLoginCommand = async (id: string, command: string) => {
     try {
-      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(command);
-      else window.prompt('Run this command in a terminal', command);
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(command);
       setCopiedCommand(id);
       window.setTimeout(() => setCopiedCommand((current) => current === id ? '' : current), 2_000);
     } catch {
@@ -908,6 +980,7 @@ function Workbench() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [theme, setTheme] = useState<ThemeName>(() => savedTheme());
   const [mode, setMode] = useState<ColorMode>(() => savedColorMode());
+  const [componentDialog, setComponentDialog] = useState<ComponentDialogState | null>(null);
   const settingsReturnRoute = useRef<RouteState>(route.view === 'settings' ? baseRoute() : route);
 
   const navigate = useCallback((next: RouteState, { replace = false } = {}) => {
@@ -1020,11 +1093,29 @@ function Workbench() {
     if (!selectedRepository) return;
     const component = selectedRepository.components.find((item) => item.slug === slug);
     if (!component) return;
-    const title = window.prompt('Component name', component.title)?.trim();
-    if (!title || title === component.title) return;
-    await api(`/api/repositories/${selectedRepository.id}/components/${encodeURIComponent(slug)}`, {
-      method: 'PATCH', body: JSON.stringify({ title }),
-    });
+    setComponentDialog({ mode: 'rename', slug, initial: component.title });
+  };
+  const createComponent = async () => {
+    if (!selectedRepository) return;
+    setComponentDialog({ mode: 'create', initial: '' });
+  };
+  const submitComponentDialog = async (title: string) => {
+    if (!selectedRepository || !componentDialog) return;
+    if (componentDialog.mode === 'rename') {
+      const component = selectedRepository.components.find((item) => item.slug === componentDialog.slug);
+      if (!component || title === component.title) {
+        setComponentDialog(null);
+        return;
+      }
+      await api(`/api/repositories/${selectedRepository.id}/components/${encodeURIComponent(componentDialog.slug || '')}`, {
+        method: 'PATCH', body: JSON.stringify({ title }),
+      });
+    } else {
+      await api(`/api/repositories/${selectedRepository.id}/components`, {
+        method: 'POST', body: JSON.stringify({ title }),
+      });
+    }
+    setComponentDialog(null);
     await refreshRepositories();
   };
   const needsYou = visibleSessions.filter((session) => ['blocked', 'waiting'].includes(session.status)).length;
@@ -1118,12 +1209,15 @@ function Workbench() {
               onBack={() => navigate(repositoryRoute(selectedRepository.id))}
               onOpenFront={(frontSlug) => navigate({ ...repositoryRoute(selectedRepository.id), componentSlug: selectedComponent.slug, frontSlug })}
             /> : <>
-              <PageHeading eyebrow={selectedRepository.name} title="Components" back={() => navigate(baseRoute())} />
+              <PageHeading eyebrow={selectedRepository.name} title="Components" back={() => navigate(baseRoute())}>
+                {selectedRepository.components.length > 0 && <button class="primary" onClick={() => void createComponent()}>New component</button>}
+              </PageHeading>
               <ComponentsView
                 repository={selectedRepository}
                 onInitialize={initializeRepository}
                 onOpen={(componentSlug) => navigate({ ...repositoryRoute(selectedRepository.id), componentSlug })}
                 onRename={renameComponent}
+                onCreate={createComponent}
               />
             </>}
         </>}
@@ -1141,6 +1235,7 @@ function Workbench() {
           ? () => navigate({ ...repositoryRoute(selectedRepo), componentSlug: openSessionComponent.slug, frontSlug: openSessionFront.slug })
           : undefined}
       />
+      {componentDialog && <ComponentNameDialog state={componentDialog} onCancel={() => setComponentDialog(null)} onSubmit={submitComponentDialog} />}
     </>
   );
 }

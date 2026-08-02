@@ -18,7 +18,7 @@ import { capture, exists, kill, askToWrapUp, sendKey, sendText, start } from './
 import { ansiToHtml } from './ansi.mjs';
 import { createPairingAuth } from './auth.mjs';
 import { agentInvocation, createConfigStore, detectAdapter } from './config.mjs';
-import { renameComponent, repositoriesSnapshot } from './repositories.mjs';
+import { createComponent, renameComponent, repositoriesSnapshot } from './repositories.mjs';
 import { resolvePermission, snapshot, stateDir } from './state.mjs';
 
 import { promisify } from 'node:util';
@@ -286,6 +286,18 @@ export function createHandraise({
         const payload = await body(request);
         const component = renameComponent({ ...repository, adapter: detectAdapter(repository.path) }, parts[4], payload.title);
         return json(response, 200, { component });
+      }
+
+      if (request.method === 'POST' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'components' && !parts[4]) {
+        const repository = config.read().repositories.find((item) => item.id === parts[2]);
+        if (!repository) return json(response, 404, { error: 'repository not found' });
+        let adapter = detectAdapter(repository.path);
+        if (adapter === 'uninitialized') {
+          config.initializeRepository(repository.id);
+          adapter = detectAdapter(repository.path);
+        }
+        const component = createComponent({ ...repository, adapter }, await body(request));
+        return json(response, 201, { component });
       }
 
       if (request.method === 'POST' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'initialize') {
