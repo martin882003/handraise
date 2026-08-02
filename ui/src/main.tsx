@@ -125,12 +125,6 @@ interface AuthStatus {
   device: { id: string; name: string } | null;
 }
 
-const ADAPTER_LABEL: Record<Repository['adapter'], string> = {
-  director: 'Compatible',
-  handraise: 'Handraise',
-  uninitialized: 'Setup needed',
-};
-
 const baseRoute = (view: View = 'repositories'): RouteState => ({
   view, repositoryId: null, componentSlug: null, frontSlug: null, sessionSlug: null,
 });
@@ -525,7 +519,7 @@ function RepositoryOverview({ repositories, onSelect }: { repositories: Reposito
       {repositories.map((repository) => (
         <button class="repository-card" key={repository.id} onClick={() => onSelect(repository.id)}>
           <span><strong>{repository.name}</strong><small>{repository.path}</small></span>
-          <span class={`adapter-badge ${repository.adapter}`}>{ADAPTER_LABEL[repository.adapter]}</span>
+          {repository.adapter === 'uninitialized' && <span class="adapter-badge uninitialized">Setup needed</span>}
           <dl class="repository-signals">
             <div class="structure"><dt>Components</dt><dd>{repository.summary?.components || 0}</dd></div>
             <div class="fronts"><dt>Open fronts</dt><dd>{repository.summary?.openFronts || 0}</dd></div>
@@ -705,7 +699,7 @@ function RepositorySettings({
     <article class="repository-setting">
       <div class="repository-setting-heading">
         <span><strong>{repository.name}</strong><small>{repository.path}</small></span>
-        <span class={`adapter-badge ${repository.adapter}`}>{ADAPTER_LABEL[repository.adapter]}</span>
+        {repository.adapter === 'uninitialized' && <span class="adapter-badge uninitialized">Setup needed</span>}
       </div>
       <div class="repository-defaults">
         <label><span>Default agent</span><select value={draft.defaultAgent} onChange={(event) => setDraft({ ...draft, defaultAgent: event.currentTarget.value })}><option value="">Global default</option>{Object.entries(agents).filter(([, agent]) => agent.enabled).map(([id, agent]) => <option value={id}>{agent.title}</option>)}</select></label>
