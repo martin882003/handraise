@@ -581,10 +581,20 @@ function ComponentsView({
 }
 
 interface ComponentDialogState {
-  mode: 'create' | 'rename';
+  mode: 'create' | 'edit';
   initial: string;
   initialScope: string;
+  initialLimits: string;
+  initialDelegation: string;
+  initialTerritory: string;
   slug?: string;
+}
+
+interface ComponentDetailsDraft {
+  scope: string;
+  limits: string;
+  delegation: string;
+  territory: string;
 }
 
 function ComponentNameDialog({
@@ -592,10 +602,13 @@ function ComponentNameDialog({
 }: {
   state: ComponentDialogState;
   onCancel: () => void;
-  onSubmit: (title: string, scope: string) => Promise<void>;
+  onSubmit: (title: string, details: ComponentDetailsDraft) => Promise<void>;
 }) {
   const [value, setValue] = useState(state.initial);
   const [scope, setScope] = useState(state.initialScope);
+  const [limits, setLimits] = useState(state.initialLimits);
+  const [delegation, setDelegation] = useState(state.initialDelegation);
+  const [territory, setTerritory] = useState(state.initialTerritory);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -611,14 +624,16 @@ function ComponentNameDialog({
       setError('Enter a component name.');
       return;
     }
-    if (state.mode === 'create' && !scope.trim()) {
+    if (!scope.trim()) {
       setError('Describe what this component owns.');
       return;
     }
     setSaving(true);
     setError('');
     try {
-      await onSubmit(title, scope.trim());
+      await onSubmit(title, {
+        scope: scope.trim(), limits: limits.trim(), delegation: delegation.trim(), territory: territory.trim(),
+      });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
       setSaving(false);
@@ -636,12 +651,12 @@ function ComponentNameDialog({
       <section class="component-name-dialog" role="dialog" aria-modal="true" aria-labelledby="component-name-title">
         <header>
           <div>
-            <p class="section-kicker">{state.mode === 'create' ? 'New component' : 'Rename component'}</p>
-            <h2 id="component-name-title">{state.mode === 'create' ? 'Create a component' : 'Update component name'}</h2>
+            <p class="section-kicker">{state.mode === 'create' ? 'New component' : 'Edit component'}</p>
+            <h2 id="component-name-title">{state.mode === 'create' ? 'Create a component' : 'Update component definition'}</h2>
           </div>
           <button type="button" aria-label="Close" onClick={onCancel} disabled={saving}>×</button>
         </header>
-        <p class="component-name-help">{state.mode === 'create' ? 'Give this component a clear name.' : 'Choose the name shown across this repository.'}</p>
+        <p class="component-name-help">{state.mode === 'create' ? 'Give the agent enough context to work inside this component.' : 'Keep the component contract useful to the agent.'}</p>
         <label>
           <span>Component name</span>
           <input
@@ -655,7 +670,7 @@ function ComponentNameDialog({
             }}
           />
         </label>
-        {state.mode === 'create' && <label>
+        <label>
           <span>Scope / purpose</span>
           <textarea
             value={scope}
@@ -664,12 +679,24 @@ function ComponentNameDialog({
             rows={4}
             onInput={(event) => setScope(event.currentTarget.value)}
           />
-        </label>}
+        </label>
+        <label>
+          <span>Boundaries</span>
+          <textarea value={limits} disabled={saving} placeholder="What is out of scope?" rows={3} onInput={(event) => setLimits(event.currentTarget.value)} />
+        </label>
+        <label>
+          <span>Agent guidance</span>
+          <textarea value={delegation} disabled={saving} placeholder="How should the agent coordinate or hand off work?" rows={3} onInput={(event) => setDelegation(event.currentTarget.value)} />
+        </label>
+        <label>
+          <span>Territory</span>
+          <textarea value={territory} disabled={saving} placeholder="Which folders, files or surfaces does it own?" rows={3} onInput={(event) => setTerritory(event.currentTarget.value)} />
+        </label>
         {error && <p class="form-error" role="alert">{error}</p>}
         <footer>
           <button type="button" onClick={onCancel} disabled={saving}>Cancel</button>
-          <button class="primary" type="button" onClick={() => void submit()} disabled={saving || !value.trim() || (state.mode === 'create' && !scope.trim())}>
-            {saving ? 'Saving…' : state.mode === 'create' ? 'Create component' : 'Save name'}
+          <button class="primary" type="button" onClick={() => void submit()} disabled={saving || !value.trim() || !scope.trim()}>
+            {saving ? 'Saving…' : state.mode === 'create' ? 'Create component' : 'Save definition'}
           </button>
         </footer>
       </section>
@@ -1109,26 +1136,35 @@ function Workbench() {
     if (!selectedRepository) return;
     const component = selectedRepository.components.find((item) => item.slug === slug);
     if (!component) return;
-    setComponentDialog({ mode: 'rename', slug, initial: component.title, initialScope: '' });
+    const section = (pattern: RegExp) => Object.entries(component.sections).find(([heading]) => pattern.test(heading))?.[1] || '';
+    setComponentDialog({
+      mode: 'edit',
+      slug,
+      initial: component.title,
+      initialScope: section(/alcance|scope|purpose/i),
+      initialLimits: section(/límite|limite|limits|boundar/i),
+      initialDelegation: section(/delegaci|guidance/i),
+      initialTerritory: section(/territorio|territory/i),
+    });
   };
   const createComponent = async () => {
     if (!selectedRepository) return;
-    setComponentDialog({ mode: 'create', initial: '', initialScope: '' });
+    setComponentDialog({ mode: 'create', initial: '', initialScope: '', initialLimits: '', initialDelegation: '', initialTerritory: '' });
   };
-  const submitComponentDialog = async (title: string, scope: string) => {
+  const submitComponentDialog = async (title: string, details: ComponentDetailsDraft) => {
     if (!selectedRepository || !componentDialog) return;
-    if (componentDialog.mode === 'rename') {
+    if (componentDialog.mode === 'edit') {
       const component = selectedRepository.components.find((item) => item.slug === componentDialog.slug);
-      if (!component || title === component.title) {
+      if (!component) {
         setComponentDialog(null);
         return;
       }
       await api(`/api/repositories/${selectedRepository.id}/components/${encodeURIComponent(componentDialog.slug || '')}`, {
-        method: 'PATCH', body: JSON.stringify({ title }),
+        method: 'PATCH', body: JSON.stringify({ title, ...details }),
       });
     } else {
       await api(`/api/repositories/${selectedRepository.id}/components`, {
-        method: 'POST', body: JSON.stringify({ title, scope }),
+        method: 'POST', body: JSON.stringify({ title, ...details }),
       });
     }
     setComponentDialog(null);

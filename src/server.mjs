@@ -18,7 +18,7 @@ import { capture, exists, kill, askToWrapUp, sendKey, sendText, start } from './
 import { ansiToHtml } from './ansi.mjs';
 import { createPairingAuth } from './auth.mjs';
 import { agentInvocation, createConfigStore, detectAdapter } from './config.mjs';
-import { createComponent, renameComponent, repositoriesSnapshot } from './repositories.mjs';
+import { createComponent, repositoriesSnapshot, updateComponent } from './repositories.mjs';
 import { resolvePermission, snapshot, stateDir } from './state.mjs';
 
 import { promisify } from 'node:util';
@@ -284,7 +284,7 @@ export function createHandraise({
         const repository = config.read().repositories.find((item) => item.id === parts[2]);
         if (!repository) return json(response, 404, { error: 'repository not found' });
         const payload = await body(request);
-        const component = renameComponent({ ...repository, adapter: detectAdapter(repository.path) }, parts[4], payload.title);
+        const component = updateComponent({ ...repository, adapter: detectAdapter(repository.path) }, parts[4], payload);
         return json(response, 200, { component });
       }
 

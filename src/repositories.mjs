@@ -50,10 +50,58 @@ function componentSlug(value) {
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'component';
 }
 
-export function createComponent(repository, { title, slug, scope } = {}) {
+function cleanMultiline(value, limit = 2_000) {
+  return String(value || '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .trim()
+    .slice(0, limit);
+}
+
+const COMPONENT_SECTIONS = {
+  scope: { aliases: ['scope', 'alcance'], heading: 'Scope' },
+  limits: { aliases: ['limits', 'límites', 'limites', 'boundaries'], heading: 'Limits' },
+  delegation: { aliases: ['delegación', 'delegacion', 'delegation', 'agent guidance', 'guidance'], heading: 'Agent guidance' },
+  territory: { aliases: ['territorio', 'territory'], heading: 'Territory' },
+};
+
+function replaceComponentSection(markdown, field, value, adapter) {
+  const definition = COMPONENT_SECTIONS[field];
+  const aliases = new Set(definition.aliases);
+  const chunks = markdown.split(/^## /m);
+  let found = false;
+  const updated = chunks.map((chunk, index) => {
+    if (index === 0) return chunk;
+    const lineEnd = chunk.indexOf('\n');
+    const title = (lineEnd < 0 ? chunk : chunk.slice(0, lineEnd)).trim().toLowerCase();
+    if (!aliases.has(title)) return chunk;
+    found = true;
+    return `${chunk.slice(0, lineEnd < 0 ? chunk.length : lineEnd)}\n\n${value}\n`;
+  });
+  if (!found && value) {
+    const heading = adapter === 'director' && field === 'scope' ? 'Alcance'
+      : adapter === 'director' && field === 'limits' ? 'Límites'
+        : adapter === 'director' && field === 'delegation' ? 'Delegación'
+          : adapter === 'director' && field === 'territory' ? 'Territorio' : definition.heading;
+    updated.push(`${heading}\n\n${value}\n`);
+  }
+  return updated.join('## ');
+}
+
+function componentFilename(repository, slug) {
+  const componentDirectory = join(repository.path, repository.adapter === 'director' ? '.claude/components' : '.handraise/components');
+  const filename = listMarkdown(componentDirectory).find((name) => {
+    if (name === '_TEMPLATE.md') return false;
+    const fallbackSlug = name.replace(/\.md$/, '');
+    return parseComponent(join(componentDirectory, name), fallbackSlug).slug === slug;
+  });
+  return filename ? { componentDirectory, filename } : null;
+}
+
+export function createComponent(repository, { title, slug, scope, limits, delegation, territory } = {}) {
   const cleanTitle = String(title || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
   if (!cleanTitle) throw new Error('component title is required');
-  const cleanScope = String(scope || '').replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, 2_000);
+  const cleanScope = cleanMultiline(scope);
   if (!cleanScope) throw new Error('component scope is required');
   const componentDirectory = join(repository.path, repository.adapter === 'director' ? '.claude/components' : '.handraise/components');
   mkdirSync(componentDirectory, { recursive: true });
@@ -67,29 +115,41 @@ export function createComponent(repository, { title, slug, scope } = {}) {
     ? `slug: ${candidate}\ntitulo: ${cleanTitle}\nestado: activo\norden: 99\ndesde: ${today}`
     : `slug: ${candidate}\ntitle: ${cleanTitle}\nstate: active\norder: 99\nsince: ${today}`;
   const path = join(componentDirectory, `${candidate}.md`);
-  const heading = repository.adapter === 'director' ? 'Alcance' : 'Scope';
-  writeFileSync(path, `---\n${frontmatter}\n---\n\n## ${heading}\n\n${cleanScope}\n`);
+  let markdown = `---\n${frontmatter}\n---\n`;
+  markdown = replaceComponentSection(markdown, 'scope', cleanScope, repository.adapter);
+  for (const [field, value] of Object.entries({ limits, delegation, territory })) {
+    const cleanValue = cleanMultiline(value);
+    if (cleanValue) markdown = replaceComponentSection(markdown, field, cleanValue, repository.adapter);
+  }
+  writeFileSync(path, `${markdown.trimEnd()}\n`);
   return parseComponent(path, candidate);
 }
 
-export function renameComponent(repository, slug, title) {
+export function updateComponent(repository, slug, details = {}) {
+  const { title, scope, limits, delegation, territory } = details;
   const cleanTitle = String(title || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 120);
   if (!cleanTitle) throw new Error('component title is required');
-  const componentDirectory = join(repository.path, repository.adapter === 'director' ? '.claude/components' : '.handraise/components');
-  const filename = listMarkdown(componentDirectory).find((name) => {
-    if (name === '_TEMPLATE.md') return false;
-    const fallbackSlug = name.replace(/\.md$/, '');
-    return parseComponent(join(componentDirectory, name), fallbackSlug).slug === slug;
-  });
-  if (!filename) throw new Error('component not found');
+  const location = componentFilename(repository, slug);
+  if (!location) throw new Error('component not found');
+  const { componentDirectory, filename } = location;
   const path = join(componentDirectory, filename);
   let markdown = read(path);
   if (/^titulo:\s*.*$/mi.test(markdown)) markdown = markdown.replace(/^titulo:\s*.*$/mi, `titulo: ${cleanTitle}`);
   else if (/^title:\s*.*$/mi.test(markdown)) markdown = markdown.replace(/^title:\s*.*$/mi, `title: ${cleanTitle}`);
   else if (/^---\n/.test(markdown)) markdown = markdown.replace(/^---\n/, `---\ntitulo: ${cleanTitle}\n`);
   else markdown = `---\ntitulo: ${cleanTitle}\n---\n\n${markdown}`;
-  writeFileSync(path, markdown);
+  const sectionDetails = { scope, limits, delegation, territory };
+  for (const [field, value] of Object.entries(sectionDetails)) {
+    if (!Object.prototype.hasOwnProperty.call(details, field)) continue;
+    const cleanValue = cleanMultiline(value);
+    markdown = replaceComponentSection(markdown, field, cleanValue, repository.adapter);
+  }
+  writeFileSync(path, `${markdown.trimEnd()}\n`);
   return parseComponent(path, filename.replace(/\.md$/, ''));
+}
+
+export function renameComponent(repository, slug, title) {
+  return updateComponent(repository, slug, { title });
 }
 
 function priorityCatalog(markdown) {
