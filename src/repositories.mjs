@@ -50,9 +50,11 @@ function componentSlug(value) {
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'component';
 }
 
-export function createComponent(repository, { title, slug } = {}) {
+export function createComponent(repository, { title, slug, scope } = {}) {
   const cleanTitle = String(title || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
   if (!cleanTitle) throw new Error('component title is required');
+  const cleanScope = String(scope || '').replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, 2_000);
+  if (!cleanScope) throw new Error('component scope is required');
   const componentDirectory = join(repository.path, repository.adapter === 'director' ? '.claude/components' : '.handraise/components');
   mkdirSync(componentDirectory, { recursive: true });
   const existing = new Set(listMarkdown(componentDirectory).map((name) => parseComponent(join(componentDirectory, name), name.replace(/\.md$/, '')).slug));
@@ -65,7 +67,8 @@ export function createComponent(repository, { title, slug } = {}) {
     ? `slug: ${candidate}\ntitulo: ${cleanTitle}\nestado: activo\norden: 99\ndesde: ${today}`
     : `slug: ${candidate}\ntitle: ${cleanTitle}\nstate: active\norder: 99\nsince: ${today}`;
   const path = join(componentDirectory, `${candidate}.md`);
-  writeFileSync(path, `---\n${frontmatter}\n---\n\n## Scope\n\nDefine the scope of this component.\n`);
+  const heading = repository.adapter === 'director' ? 'Alcance' : 'Scope';
+  writeFileSync(path, `---\n${frontmatter}\n---\n\n## ${heading}\n\n${cleanScope}\n`);
   return parseComponent(path, candidate);
 }
 

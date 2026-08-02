@@ -583,6 +583,7 @@ function ComponentsView({
 interface ComponentDialogState {
   mode: 'create' | 'rename';
   initial: string;
+  initialScope: string;
   slug?: string;
 }
 
@@ -591,9 +592,10 @@ function ComponentNameDialog({
 }: {
   state: ComponentDialogState;
   onCancel: () => void;
-  onSubmit: (title: string) => Promise<void>;
+  onSubmit: (title: string, scope: string) => Promise<void>;
 }) {
   const [value, setValue] = useState(state.initial);
+  const [scope, setScope] = useState(state.initialScope);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -609,10 +611,14 @@ function ComponentNameDialog({
       setError('Enter a component name.');
       return;
     }
+    if (state.mode === 'create' && !scope.trim()) {
+      setError('Describe what this component owns.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
-      await onSubmit(title);
+      await onSubmit(title, scope.trim());
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
       setSaving(false);
@@ -649,10 +655,20 @@ function ComponentNameDialog({
             }}
           />
         </label>
+        {state.mode === 'create' && <label>
+          <span>Scope / purpose</span>
+          <textarea
+            value={scope}
+            disabled={saving}
+            placeholder="What does this component own?"
+            rows={4}
+            onInput={(event) => setScope(event.currentTarget.value)}
+          />
+        </label>}
         {error && <p class="form-error" role="alert">{error}</p>}
         <footer>
           <button type="button" onClick={onCancel} disabled={saving}>Cancel</button>
-          <button class="primary" type="button" onClick={() => void submit()} disabled={saving || !value.trim()}>
+          <button class="primary" type="button" onClick={() => void submit()} disabled={saving || !value.trim() || (state.mode === 'create' && !scope.trim())}>
             {saving ? 'Saving…' : state.mode === 'create' ? 'Create component' : 'Save name'}
           </button>
         </footer>
@@ -697,17 +713,17 @@ function ComponentDetail({
     || Object.values(component.sections).find(Boolean)
     || 'This component has no written scope yet.';
   const fronts = component.fronts.filter((front) => front.kind === 'front');
+  const progress = component.progress === null ? null : Math.min(100, Math.max(0, component.progress));
   return (
     <>
       <nav class="breadcrumbs" aria-label="Breadcrumb"><button onClick={onBack}>Components</button><span>/</span><b>{component.title}</b></nav>
       <section class="entity-hero component-detail-hero">
         <div><p class="section-kicker">Component · {component.slug}</p><h1>{component.title}</h1><p class="entity-copy">{plainCopy(description)}</p></div>
-        <dl>
-          <div class="progress"><dt>Progress</dt><dd>{component.progress === null ? '—' : `${component.progress}%`}</dd></div>
+        <dl class="component-metrics">
+          <div class="progress"><dt>Progress</dt><dd><span class="progress-ring" style={`--progress: ${progress || 0}%`}><span>{progress === null ? '—' : `${progress}%`}</span></span></dd></div>
           <div class="active"><dt>Active</dt><dd>{component.counts.active}</dd></div>
           <div class="open"><dt>Open</dt><dd>{component.counts.queued + component.counts.blocked + component.counts.paused}</dd></div>
         </dl>
-        <div class="component-detail-progress"><span style={{ width: `${component.progress || 0}%` }} /></div>
       </section>
       <section class="detail-section">
         <header><div><p class="section-kicker">Work</p><h2>Fronts</h2></div><span>{fronts.length} total</span></header>
@@ -1093,13 +1109,13 @@ function Workbench() {
     if (!selectedRepository) return;
     const component = selectedRepository.components.find((item) => item.slug === slug);
     if (!component) return;
-    setComponentDialog({ mode: 'rename', slug, initial: component.title });
+    setComponentDialog({ mode: 'rename', slug, initial: component.title, initialScope: '' });
   };
   const createComponent = async () => {
     if (!selectedRepository) return;
-    setComponentDialog({ mode: 'create', initial: '' });
+    setComponentDialog({ mode: 'create', initial: '', initialScope: '' });
   };
-  const submitComponentDialog = async (title: string) => {
+  const submitComponentDialog = async (title: string, scope: string) => {
     if (!selectedRepository || !componentDialog) return;
     if (componentDialog.mode === 'rename') {
       const component = selectedRepository.components.find((item) => item.slug === componentDialog.slug);
@@ -1112,7 +1128,7 @@ function Workbench() {
       });
     } else {
       await api(`/api/repositories/${selectedRepository.id}/components`, {
-        method: 'POST', body: JSON.stringify({ title }),
+        method: 'POST', body: JSON.stringify({ title, scope }),
       });
     }
     setComponentDialog(null);
