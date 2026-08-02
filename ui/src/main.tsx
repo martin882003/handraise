@@ -763,10 +763,12 @@ function Workbench() {
   const [route, setRoute] = useState<RouteState>(() => parseRoute());
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigate = useCallback((next: RouteState, { replace = false } = {}) => {
     window.history[replace ? 'replaceState' : 'pushState']({}, '', routePath(next));
     setRoute(next);
+    setMobileMenuOpen(false);
   }, []);
 
   const refreshRepositories = useCallback(async () => {
@@ -862,6 +864,9 @@ function Workbench() {
     : wrapping
       ? `${summary} · ${wrapping} wrapping up`
       : `${summary} · all clear`;
+  const headerStatus = selectedRepository
+    ? (connected ? (state.at ? liveSummary : 'Connecting…') : (state.at ? `Offline · ${summary} last seen` : 'Connecting…'))
+    : `${repositories.length} repositor${repositories.length === 1 ? 'y' : 'ies'}`;
   const repositoryRoute = (repositoryId: string, view: 'components' | 'sessions' = 'components'): RouteState => ({
     ...baseRoute(view), repositoryId,
   });
@@ -884,7 +889,6 @@ function Workbench() {
           <button class={route.view === 'repositories' ? 'active' : ''} onClick={() => navigate(baseRoute())}>Repositories</button>
           {selectedRepo && <button class={route.view === 'components' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo))}>Components</button>}
           {selectedRepo && <button class={route.view === 'sessions' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo, 'sessions'))}>Sessions</button>}
-          <button class={route.view === 'settings' ? 'active' : ''} onClick={() => navigate(baseRoute('settings'))}>Settings</button>
         </nav>
         <select class="repo-select" aria-label="Repository" value={selectedRepo || ''} onChange={(event) => {
           const repositoryId = event.currentTarget.value;
@@ -895,10 +899,22 @@ function Workbench() {
         </select>
         <div class="fleet-summary" aria-live="polite">
           <i class={connected ? 'online' : ''} aria-hidden="true" />
-          <span>{selectedRepository
-            ? (connected ? (state.at ? liveSummary : 'Connecting…') : (state.at ? `Offline · ${summary} last seen` : 'Connecting…'))
-            : `${repositories.length} repositor${repositories.length === 1 ? 'y' : 'ies'}`}</span>
+          <span>{headerStatus}</span>
         </div>
+        <button class={`settings-shortcut ${route.view === 'settings' ? 'active' : ''}`} onClick={() => navigate(baseRoute('settings'))}>Settings</button>
+        <button
+          class="mobile-menu-toggle"
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-utility-menu"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+        ><span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" /></button>
+        <section id="mobile-utility-menu" class={`mobile-menu-panel ${mobileMenuOpen ? 'open' : ''}`}>
+          <button class={route.view === 'settings' ? 'active' : ''} onClick={() => navigate(baseRoute('settings'))}>
+            <span>Settings</span><small>Repositories, agents and paired devices</small>
+          </button>
+          <div class="mobile-menu-status" aria-live="polite"><i class={connected ? 'online' : ''} aria-hidden="true" /><span>{headerStatus}</span></div>
+        </section>
       </header>
 
       <main class="workspace">
