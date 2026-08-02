@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { procAlive } from './state.mjs';
@@ -42,6 +42,26 @@ function parseComponent(path, fallbackSlug) {
     since: meta.desde || meta.since || '',
     sections: sections(markdown),
   };
+}
+
+export function renameComponent(repository, slug, title) {
+  const cleanTitle = String(title || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 120);
+  if (!cleanTitle) throw new Error('component title is required');
+  const componentDirectory = join(repository.path, repository.adapter === 'director' ? '.claude/components' : '.handraise/components');
+  const filename = listMarkdown(componentDirectory).find((name) => {
+    if (name === '_TEMPLATE.md') return false;
+    const fallbackSlug = name.replace(/\.md$/, '');
+    return parseComponent(join(componentDirectory, name), fallbackSlug).slug === slug;
+  });
+  if (!filename) throw new Error('component not found');
+  const path = join(componentDirectory, filename);
+  let markdown = read(path);
+  if (/^titulo:\s*.*$/mi.test(markdown)) markdown = markdown.replace(/^titulo:\s*.*$/mi, `titulo: ${cleanTitle}`);
+  else if (/^title:\s*.*$/mi.test(markdown)) markdown = markdown.replace(/^title:\s*.*$/mi, `title: ${cleanTitle}`);
+  else if (/^---\n/.test(markdown)) markdown = markdown.replace(/^---\n/, `---\ntitulo: ${cleanTitle}\n`);
+  else markdown = `---\ntitulo: ${cleanTitle}\n---\n\n${markdown}`;
+  writeFileSync(path, markdown);
+  return parseComponent(path, filename.replace(/\.md$/, ''));
 }
 
 function priorityCatalog(markdown) {

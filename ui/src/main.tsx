@@ -498,10 +498,13 @@ function PairScreen({ onPaired }: { onPaired: (status: AuthStatus) => void }) {
   );
 }
 
-function PageHeading({ eyebrow, title, children }: { eyebrow: string; title: string; children?: preact.ComponentChildren }) {
+function PageHeading({ eyebrow, title, children, back }: { eyebrow: string; title: string; children?: preact.ComponentChildren; back?: () => void }) {
   return (
     <section class="page-heading">
-      <div><p>{eyebrow}</p><h1>{title}</h1></div>
+      <div class="page-heading-copy">
+        {back && <button class="page-heading-back" type="button" aria-label="Back to repositories" title="Back to repositories" onClick={back}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7M8 12h12" /></svg></button>}
+        <div><p>{eyebrow}</p><h1>{title}</h1></div>
+      </div>
       {children}
     </section>
   );
@@ -551,8 +554,8 @@ function InitializeRepository({ repository, onInitialize }: { repository: Reposi
 }
 
 function ComponentsView({
-  repository, onInitialize, onOpen,
-}: { repository: Repository; onInitialize: () => Promise<void>; onOpen: (slug: string) => void }) {
+  repository, onInitialize, onOpen, onRename,
+}: { repository: Repository; onInitialize: () => Promise<void>; onOpen: (slug: string) => void; onRename: (slug: string) => Promise<void> }) {
   if (repository.adapter === 'uninitialized') {
     return <InitializeRepository repository={repository} onInitialize={onInitialize} />;
   }
@@ -560,24 +563,27 @@ function ComponentsView({
   return (
     <section class="component-grid">
       {repository.components.map((component) => (
-        <button class="component-card" key={component.slug} onClick={() => onOpen(component.slug)}>
-          <header>
-            <span><strong>{component.title}</strong><small>{component.slug}</small></span>
-            <span class={`adapter-badge ${component.state}`}>{component.state}</span>
-          </header>
-          <div class="component-progress-heading"><span>Progress</span><b>{component.progress === null ? '—' : `${component.progress}%`}</b></div>
-          <div class="component-progress">
-            <span style={{ width: `${component.progress || 0}%` }} />
-          </div>
-          <p>{component.activeFront ? <>Working on <b>{component.activeFront}</b></> : 'No active front'}</p>
-          <dl>
-            <div class="active"><dt>Active</dt><dd>{component.counts.active}</dd></div>
-            <div class="queued"><dt>Queued</dt><dd>{component.counts.queued}</dd></div>
-            <div class="blocked"><dt>Blocked</dt><dd>{component.counts.blocked}</dd></div>
-            <div class="done"><dt>Done</dt><dd>{component.counts.done}</dd></div>
-          </dl>
-          <span class="drill-label">Open component →</span>
-        </button>
+        <article class="component-card" key={component.slug}>
+          <button class="component-card-main" type="button" onClick={() => onOpen(component.slug)}>
+            <header>
+              <span><strong>{component.title}</strong></span>
+              <span class={`adapter-badge ${component.state}`}>{component.state}</span>
+            </header>
+            <div class="component-progress-heading"><span>Progress</span><b>{component.progress === null ? '—' : `${component.progress}%`}</b></div>
+            <div class="component-progress">
+              <span style={{ width: `${component.progress || 0}%` }} />
+            </div>
+            <p>{component.activeFront ? <>Working on <b>{component.activeFront}</b></> : 'No active front'}</p>
+            <dl>
+              <div class="active"><dt>Active</dt><dd>{component.counts.active}</dd></div>
+              <div class="queued"><dt>Queued</dt><dd>{component.counts.queued}</dd></div>
+              <div class="blocked"><dt>Blocked</dt><dd>{component.counts.blocked}</dd></div>
+              <div class="done"><dt>Done</dt><dd>{component.counts.done}</dd></div>
+            </dl>
+            <span class="drill-label">Open component →</span>
+          </button>
+          <button class="component-edit" type="button" aria-label={`Rename ${component.title}`} title="Rename component" onClick={() => void onRename(component.slug)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.5 16 4 20ZM14.5 6.5l3 3" /></svg></button>
+        </article>
       ))}
     </section>
   );
@@ -1010,6 +1016,17 @@ function Workbench() {
     await api(`/api/repositories/${selectedRepository.id}/initialize`, { method: 'POST', body: '{}' });
     await refreshManagement();
   };
+  const renameComponent = async (slug: string) => {
+    if (!selectedRepository) return;
+    const component = selectedRepository.components.find((item) => item.slug === slug);
+    if (!component) return;
+    const title = window.prompt('Component name', component.title)?.trim();
+    if (!title || title === component.title) return;
+    await api(`/api/repositories/${selectedRepository.id}/components/${encodeURIComponent(slug)}`, {
+      method: 'PATCH', body: JSON.stringify({ title }),
+    });
+    await refreshRepositories();
+  };
   const needsYou = visibleSessions.filter((session) => ['blocked', 'waiting'].includes(session.status)).length;
   const summary = visibleSessions.length
     ? `${visibleSessions.length} session${visibleSessions.length === 1 ? '' : 's'}`
@@ -1081,7 +1098,7 @@ function Workbench() {
         </>}
 
         {route.view === 'sessions' && selectedRepository && <>
-          <PageHeading eyebrow={selectedRepository.name} title="Sessions">
+          <PageHeading eyebrow={selectedRepository.name} title="Sessions" back={() => navigate(baseRoute())}>
             <div class="legend" aria-label="Session status legend">{(Object.keys(STATUS_LABEL) as Status[]).map((status) => <span class={status} key={status}><i aria-hidden="true" />{STATUS_LABEL[status]}</span>)}</div>
           </PageHeading>
           <section class="session-grid" aria-label="Agent sessions" aria-live="polite">
@@ -1101,11 +1118,12 @@ function Workbench() {
               onBack={() => navigate(repositoryRoute(selectedRepository.id))}
               onOpenFront={(frontSlug) => navigate({ ...repositoryRoute(selectedRepository.id), componentSlug: selectedComponent.slug, frontSlug })}
             /> : <>
-              <PageHeading eyebrow={selectedRepository.name} title="Components" />
+              <PageHeading eyebrow={selectedRepository.name} title="Components" back={() => navigate(baseRoute())} />
               <ComponentsView
                 repository={selectedRepository}
                 onInitialize={initializeRepository}
                 onOpen={(componentSlug) => navigate({ ...repositoryRoute(selectedRepository.id), componentSlug })}
+                onRename={renameComponent}
               />
             </>}
         </>}
