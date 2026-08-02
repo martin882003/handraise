@@ -41,7 +41,8 @@
     "url": "https://github.com/martin882003/handraise.git"
   },
   "dependencies": {
-    "preact": "^10.29.8"
+    "preact": "^10.29.8",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",

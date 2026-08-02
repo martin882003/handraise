@@ -35,6 +35,10 @@ export const OPT_AGENT = '@handraise-agent';
 export const OPT_WRAPUP = '@handraise-wrapup';
 export const OPT_ERROR = '@handraise-error';
 export const OPT_CWD = '@handraise-cwd';
+export const OPT_REPO = '@handraise-repo';
+export const OPT_COMPONENT = '@handraise-component';
+export const OPT_FRONT = '@handraise-front';
+export const OPT_SLUG = '@handraise-slug';
 
 /**
  * Allowed keys, and the list is closed on purpose: `send-keys` without a filter
@@ -69,14 +73,18 @@ export function sessions(run = tmux) {
   const fields = [
     '#{session_name}', '#{session_attached}', '#{window_activity}',
     `#{${OPT_AGENT}}`, `#{${OPT_WRAPUP}}`, `#{${OPT_ERROR}}`, `#{${OPT_CWD}}`,
+    `#{${OPT_REPO}}`, `#{${OPT_COMPONENT}}`, `#{${OPT_FRONT}}`,
+    `#{${OPT_SLUG}}`,
   ];
   const out = run(['list-sessions', '-F', fields.join('\t')], { allowFail: true });
   if (!out) return [];
   return out.split('\n').filter(Boolean).flatMap((line) => {
-    const [name, attached, activity, agent, wrapup, error, cwd] = line.split('\t');
+    const [name, attached, activity, agent, wrapup, error, cwd, repoId, component, front, displaySlug] = line.split('\t');
     if (!name?.startsWith(PREFIX)) return [];
+    const controlSlug = name.slice(PREFIX.length);
     return [{
-      slug: name.slice(PREFIX.length),
+      slug: displaySlug || controlSlug,
+      controlSlug,
       tmux: name,
       attached: attached === '1',
       activity: Number(activity) || null,
@@ -84,12 +92,15 @@ export function sessions(run = tmux) {
       wrapupAskedAt: Number(wrapup) || null,
       error: error || null,
       cwd: cwd || null,
+      repoId: repoId || null,
+      component: component || null,
+      front: front || null,
     }];
   });
 }
 
 export function exists(slug, run = tmux) {
-  return sessions(run).some((s) => s.slug === slug);
+  return sessions(run).some((s) => s.controlSlug === slug);
 }
 
 /**
@@ -111,23 +122,32 @@ export function holdError(command) {
  * explicit size falls back to 80×24, and the agent will wrap its own output even
  * when the browser has the whole screen available.
  */
-export function start({ slug, cwd, command = 'claude', agent = 'claude', env = {}, run = tmux }) {
+export function start({
+  slug, cwd, command = 'claude', agent = 'claude', env = {},
+  repoId = null, component = null, front = null, run = tmux,
+}) {
   if (!/^[A-Za-z0-9._-]{1,64}$/.test(slug)) throw new Error(`invalid session name: '${slug}'`);
-  const previous = sessions(run).find((s) => s.slug === slug);
-  if (previous && !previous.error) return { existed: true, tmux: tmuxName(slug) };
-  if (previous?.error) run(['kill-session', '-t', tmuxName(slug)]);
+  const controlSlug = repoId ? `${repoId}--${slug}` : slug;
+  if (!/^[A-Za-z0-9._-]{1,140}$/.test(controlSlug)) throw new Error('repository and session names are too long together');
+  const previous = sessions(run).find((s) => s.controlSlug === controlSlug);
+  if (previous && !previous.error) return { existed: true, tmux: tmuxName(controlSlug), controlSlug };
+  if (previous?.error) run(['kill-session', '-t', tmuxName(controlSlug)]);
 
   const exported = Object.entries({ HANDRAISE: '1', ...env })
     .map(([key, value]) => `${key}=${JSON.stringify(String(value))}`)
     .join(' ');
   const script = holdError(`export ${exported}; ${command}`);
 
-  run(['new-session', '-d', '-x', '160', '-y', '48', '-s', tmuxName(slug), '-c', cwd, script]);
+  run(['new-session', '-d', '-x', '160', '-y', '48', '-s', tmuxName(controlSlug), '-c', cwd, script]);
   // Recorded after creation because before it there is nowhere to record it. If
   // this failed the session is still drivable and reads back as the default.
-  run(['set-option', '-t', tmuxName(slug), OPT_AGENT, agent], { allowFail: true });
-  run(['set-option', '-t', tmuxName(slug), OPT_CWD, cwd], { allowFail: true });
-  return { existed: false, tmux: tmuxName(slug), agent };
+  run(['set-option', '-t', tmuxName(controlSlug), OPT_AGENT, agent], { allowFail: true });
+  run(['set-option', '-t', tmuxName(controlSlug), OPT_CWD, cwd], { allowFail: true });
+  run(['set-option', '-t', tmuxName(controlSlug), OPT_SLUG, slug], { allowFail: true });
+  if (repoId) run(['set-option', '-t', tmuxName(controlSlug), OPT_REPO, repoId], { allowFail: true });
+  if (component) run(['set-option', '-t', tmuxName(controlSlug), OPT_COMPONENT, component], { allowFail: true });
+  if (front) run(['set-option', '-t', tmuxName(controlSlug), OPT_FRONT, front], { allowFail: true });
+  return { existed: false, tmux: tmuxName(controlSlug), controlSlug, agent };
 }
 
 /** What the pane shows, including the scrollback you asked for. */

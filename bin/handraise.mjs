@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-// Handraise's command line. Four verbs and no configuration file: the panel keeps
-// no state of its own, so there is nothing to configure that tmux doesn't
-// already know.
+// Handraise's command line. Runtime truth stays in tmux and in each repository;
+// the small user-level settings file only remembers connected repositories,
+// paired devices and agent defaults.
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
 import { createHandraise } from '../src/server.mjs';
+import { createPairingAuth } from '../src/auth.mjs';
+import { agentInvocation, createConfigStore } from '../src/config.mjs';
 import { sessions, start } from '../src/control.mjs';
 import { stateDir } from '../src/state.mjs';
 
@@ -22,6 +24,8 @@ function flag(name, fallback = null) {
   const index = rest.indexOf(`--${name}`);
   return index >= 0 && rest[index + 1] ? rest[index + 1] : fallback;
 }
+
+const hasFlag = (name) => rest.includes(`--${name}`);
 
 /** Everything that is not a `--flag` or the value right after one. */
 function positional() {
@@ -48,8 +52,14 @@ function serve() {
   const port = Number(flag('port', process.env.HANDRAISE_PORT || 4177));
   const host = flag('host', '127.0.0.1');
   const server = createHandraise();
+  const repositoryPath = flag('repo');
+  if (repositoryPath) server.handraise.config.addRepository(repositoryPath);
   server.listen(port, host, () => {
     console.log(`handraise on http://${host}:${port}`);
+    const pairing = server.handraise.auth.pairingDetails();
+    if (pairing) {
+      console.log(`pairing code: ${pairing.code} (expires in 5 minutes)`);
+    }
     if (host !== '127.0.0.1' && host !== 'localhost') {
       console.log('⚠️  bound to a non-local address: this drives real agents, put auth in front of it.');
     }
@@ -59,21 +69,69 @@ function serve() {
   }
 }
 
+// ── repo ────────────────────────────────────────────────────────────────────
+function repository() {
+  const [action = 'list', value] = positional();
+  const config = createConfigStore({ root: stateDir() });
+  if (action === 'add') {
+    const added = config.addRepository(resolve(value || process.cwd()), { name: flag('name') });
+    console.log(`${added.name}\t${added.path}\t${added.adapter}`);
+    return;
+  }
+  if (action === 'remove') {
+    if (!value) throw new Error('usage: handraise repo remove <repo-id>');
+    config.removeRepository(value);
+    console.log(`${value} removed from Handraise (the repository itself was not changed)`);
+    return;
+  }
+  if (action !== 'list') throw new Error('usage: handraise repo add [path] | list | remove <repo-id>');
+  const repositories = config.snapshot().repositories;
+  if (!repositories.length) return console.log('no repositories connected');
+  for (const item of repositories) console.log(`${item.id}\t${item.name}\t${item.path}\t${item.adapter}`);
+}
+
+// ── auth ────────────────────────────────────────────────────────────────────
+function authentication() {
+  const [action = ''] = positional();
+  if (action !== 'reset' || !hasFlag('yes')) {
+    throw new Error('usage: handraise auth reset --yes');
+  }
+  createPairingAuth({ root: stateDir() }).reset();
+  console.log('paired devices cleared; restart handraise serve to print a new pairing code');
+}
+
 // ── start ────────────────────────────────────────────────────────────────────
 function startSession() {
   requireTmux();
   const [slug] = positional();
   if (!slug) {
-    console.error('usage: handraise start <name> [--dir <path>] [--agent claude|codex] [--command "<cli>"]');
+    console.error('usage: handraise start <name> [--dir <path>] [--repo <id>] [--component <slug>] [--front <slug>] [--agent claude|codex] [--model <id>] [--effort <level>]');
     process.exit(1);
   }
-  const agent = flag('agent', 'claude');
-  const command = flag('command', agent === 'codex' ? 'codex' : 'claude');
   const cwd = resolve(flag('dir', process.cwd()));
-  const result = start({ slug, cwd, command, agent });
+  const config = createConfigStore({ root: stateDir() });
+  let settings = config.read();
+  let repository = flag('repo')
+    ? settings.repositories.find((item) => item.id === flag('repo'))
+    : settings.repositories.find((item) => cwd === item.path || cwd.startsWith(`${item.path}${sep}`));
+  if (!repository) {
+    try { repository = config.addRepository(cwd); settings = config.read(); } catch { /* session stays unassigned outside Git */ }
+  }
+  const agent = flag('agent', repository?.defaultAgent || (settings.agents.claude.enabled ? 'claude' : 'codex'));
+  if (!settings.agents[agent]?.enabled) throw new Error(`${agent} is disabled in Settings`);
+  const command = flag('command', agentInvocation(agent, {
+    model: flag('model', repository?.model || settings.agents[agent].model),
+    effort: flag('effort', repository?.effort || settings.agents[agent].effort),
+  }));
+  const result = start({
+    slug, cwd, command, agent,
+    repoId: repository?.id || null,
+    component: flag('component'),
+    front: flag('front'),
+  });
   console.log(result.existed
     ? `${slug} was already running (${result.tmux})`
-    : `${slug} started in ${cwd} (${result.tmux})`);
+    : `${slug} started in ${cwd} (${result.tmux})${repository ? ` · ${repository.name}` : ''}`);
   console.log('open the panel with: handraise serve');
 }
 
@@ -152,16 +210,19 @@ function doctor() {
   for (const [name, value] of checks) console.log(`${name.padEnd(9)} ${value}`);
 }
 
-const VERBS = { serve: serve, start: startSession, list, 'install-hooks': installHooks, doctor };
+const VERBS = { serve: serve, start: startSession, list, repo: repository, auth: authentication, 'install-hooks': installHooks, doctor };
 
 if (!VERBS[verb]) {
   console.error(`unknown command: ${verb}\n`);
   console.error('usage:');
-  console.error('  handraise serve [--port 4177] [--host 127.0.0.1]');
-  console.error('  handraise start <name> [--dir <path>] [--agent claude|codex] [--command "<cli>"]');
+  console.error('  handraise serve [--port 4177] [--host 127.0.0.1] [--repo <path>]');
+  console.error('  handraise start <name> [--dir <path>] [--repo <id>] [--component <slug>] [--front <slug>] [--agent claude|codex] [--model <id>] [--effort <level>]');
   console.error('  handraise list');
+  console.error('  handraise repo add [path] | list | remove <repo-id>');
+  console.error('  handraise auth reset --yes');
   console.error('  handraise install-hooks');
   console.error('  handraise doctor');
   process.exit(1);
 }
-VERBS[verb]();
+try { VERBS[verb](); }
+catch (error) { console.error(`handraise: ${error.message || error}`); process.exitCode = 1; }

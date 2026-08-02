@@ -8,10 +8,10 @@
   "theme_color": "#171714",
   "icons": [
     {
-      "src": "/handraise-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/handraise-mark.png",
+      "sizes": "260x260",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

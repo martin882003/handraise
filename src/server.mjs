@@ -10,9 +10,13 @@ import { createServer } from 'node:http';
 import { mkdirSync, readFileSync, statSync, watch } from 'node:fs';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import QRCode from 'qrcode';
 
 import { capture, exists, kill, askToWrapUp, sendKey, sendText, start } from './control.mjs';
 import { ansiToHtml } from './ansi.mjs';
+import { createPairingAuth } from './auth.mjs';
+import { agentInvocation, createConfigStore, detectAdapter } from './config.mjs';
+import { repositoriesSnapshot } from './repositories.mjs';
 import { resolvePermission, snapshot, stateDir } from './state.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -24,11 +28,19 @@ const CONTENT_TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.map': 'application/json; charset=utf-8',
+  '.png': 'image/png',
   '.svg': 'image/svg+xml; charset=utf-8',
   '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
 
-function serveWeb(pathname, response, webRoot) {
+const SECURITY_HEADERS = {
+  'content-security-policy': "default-src 'self'; connect-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+  'referrer-policy': 'no-referrer',
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+};
+
+function serveWeb(pathname, response, webRoot, { head = false } = {}) {
   let relative;
   try { relative = decodeURIComponent(pathname).replace(/^\/+/, '') || 'index.html'; }
   catch { return false; }
@@ -47,23 +59,42 @@ function serveWeb(pathname, response, webRoot) {
 
   const extension = extname(file);
   response.writeHead(200, {
+    ...SECURITY_HEADERS,
     'content-type': CONTENT_TYPES[extension] || 'application/octet-stream',
     'cache-control': relative.startsWith('assets/')
       ? 'public, max-age=31536000, immutable'
       : 'no-cache',
   });
-  response.end(readFileSync(file));
+  response.end(head ? undefined : readFileSync(file));
   return true;
 }
 
 // Session names come from the URL, so the pattern is the security boundary for
 // everything downstream: tmux target names are built from it.
 const SLUG = /^[A-Za-z0-9._-]{1,64}$/;
+const CONTROL_SLUG = /^[A-Za-z0-9._-]{1,140}$/;
 
-const json = (response, code, payload) => {
-  response.writeHead(code, { 'content-type': 'application/json; charset=utf-8' });
+const json = (response, code, payload, headers = {}) => {
+  response.writeHead(code, { ...SECURITY_HEADERS, 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers });
   response.end(JSON.stringify(payload));
 };
+
+function requestOrigin(request) {
+  const forwardedProto = String(request.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+  const forwardedHost = String(request.headers['x-forwarded-host'] || '').split(',')[0].trim();
+  return `${forwardedProto || 'http'}://${forwardedHost || request.headers.host || '127.0.0.1'}`;
+}
+
+function secureRequest(request) {
+  return requestOrigin(request).startsWith('https://');
+}
+
+function sameOrigin(request) {
+  const origin = request.headers.origin;
+  if (!origin) return true;
+  try { return new URL(origin).host === new URL(requestOrigin(request)).host; }
+  catch { return false; }
+}
 
 function body(request) {
   return new Promise((resolve) => {
@@ -75,7 +106,10 @@ function body(request) {
   });
 }
 
-export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) {
+export function createHandraise({
+  root = stateDir(), webRoot = WEB_ROOT,
+  auth = createPairingAuth({ root }), config = createConfigStore({ root }),
+} = {}) {
   mkdirSync(join(root, 'attention'), { recursive: true });
   mkdirSync(join(root, 'permissions'), { recursive: true });
 
@@ -103,6 +137,101 @@ export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) 
     const parts = url.pathname.split('/').filter(Boolean);
 
     try {
+      if (request.method === 'GET' && url.pathname === '/api/auth/status') {
+        const device = auth.authenticate(request.headers.cookie);
+        return json(response, 200, {
+          authenticated: Boolean(device),
+          needsSetup: !auth.hasDevices(),
+          device,
+        });
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/auth/pair') {
+        if (!sameOrigin(request)) return json(response, 403, { error: 'cross-origin pairing is not allowed' });
+        const payload = await body(request);
+        const result = auth.pair(payload.token || payload.code, payload.name);
+        return json(response, 200, { authenticated: true, device: result.device }, {
+          'set-cookie': auth.cookie(result.token, { secure: secureRequest(request) }),
+        });
+      }
+
+      const device = auth.authenticate(request.headers.cookie);
+      if (url.pathname.startsWith('/api/') && !device) {
+        return json(response, 401, { error: 'pair this device with Handraise first' });
+      }
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method) && !sameOrigin(request)) {
+        return json(response, 403, { error: 'cross-origin request blocked' });
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/auth/logout') {
+        return json(response, 200, { ok: true }, {
+          'set-cookie': auth.clearCookie({ secure: secureRequest(request) }),
+        });
+      }
+
+      if (request.method === 'GET' && url.pathname === '/api/auth/devices') {
+        return json(response, 200, { devices: auth.devices(), currentDeviceId: device.id });
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/auth/pairing') {
+        const pairing = auth.startPairing();
+        const pairUrl = new URL('/', requestOrigin(request));
+        pairUrl.searchParams.set('pair', pairing.token);
+        const qr = await QRCode.toDataURL(pairUrl.toString(), {
+          width: 320, margin: 1,
+          color: { dark: '#171714', light: '#f1eee5' },
+        });
+        return json(response, 200, {
+          code: pairing.code,
+          expiresAt: pairing.expiresAt,
+          qr,
+          url: pairUrl.toString(),
+        });
+      }
+
+      if (request.method === 'DELETE' && parts[0] === 'api' && parts[1] === 'auth' && parts[2] === 'devices' && parts[3]) {
+        const result = auth.revoke(parts[3]);
+        const headers = parts[3] === device.id
+          ? { 'set-cookie': auth.clearCookie({ secure: secureRequest(request) }) }
+          : {};
+        return json(response, 200, result, headers);
+      }
+
+      if (request.method === 'GET' && url.pathname === '/api/settings') {
+        return json(response, 200, config.snapshot());
+      }
+
+      if (request.method === 'PATCH' && url.pathname === '/api/settings/agents') {
+        return json(response, 200, config.updateAgents(await body(request)));
+      }
+
+      if (request.method === 'GET' && url.pathname === '/api/repositories') {
+        const repositories = config.read().repositories.map((repository) => ({
+          ...repository, adapter: detectAdapter(repository.path),
+        }));
+        return json(response, 200, {
+          repositories: repositoriesSnapshot({ repositories }, snapshot({ root }).sessions),
+        });
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/repositories') {
+        const payload = await body(request);
+        return json(response, 201, { repository: config.addRepository(payload.path, payload) });
+      }
+
+      if (request.method === 'POST' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'initialize') {
+        return json(response, 200, { repository: config.initializeRepository(parts[2]) });
+      }
+
+      if (parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && !parts[3]) {
+        if (request.method === 'PATCH') {
+          return json(response, 200, { repository: config.updateRepository(parts[2], await body(request)) });
+        }
+        if (request.method === 'DELETE') {
+          return json(response, 200, config.removeRepository(parts[2]));
+        }
+      }
+
       if (request.method === 'GET' && url.pathname === '/api/state') {
         return json(response, 200, snapshot({ root }));
       }
@@ -122,7 +251,7 @@ export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) 
       // /api/session/<slug>/<action>
       if (parts[0] === 'api' && parts[1] === 'session' && parts[2]) {
         const slug = parts[2];
-        if (!SLUG.test(slug)) return json(response, 400, { error: 'invalid session name' });
+        if (!CONTROL_SLUG.test(slug)) return json(response, 400, { error: 'invalid session name' });
         const action = parts[3] ?? '';
 
         if (request.method === 'GET' && action === 'pane') {
@@ -165,13 +294,28 @@ export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) 
       }
 
       if (request.method === 'POST' && url.pathname === '/api/session') {
-        const { slug, cwd, command, agent } = await body(request);
+        const { slug, cwd, command, agent, repoId, component, front, model, effort } = await body(request);
         if (!SLUG.test(String(slug ?? ''))) return json(response, 400, { error: 'invalid session name' });
+        const repository = repoId
+          ? config.read().repositories.find((item) => item.id === repoId)
+          : null;
+        if (repoId && !repository) return json(response, 400, { error: 'repository not found' });
+        const settings = config.read();
+        const chosenAgent = String(agent || repository?.defaultAgent || (settings.agents.claude.enabled ? 'claude' : 'codex'));
+        const agentSettings = settings.agents[chosenAgent];
+        if (!agentSettings?.enabled) return json(response, 400, { error: `${chosenAgent} is disabled in Settings` });
+        const invocation = agentInvocation(chosenAgent, {
+          model: model || repository?.model || agentSettings.model,
+          effort: effort || repository?.effort || agentSettings.effort,
+        });
         const result = start({
           slug: String(slug),
-          cwd: String(cwd || process.cwd()),
-          command: command ? String(command) : undefined,
-          agent: agent ? String(agent) : undefined,
+          cwd: String(cwd || repository?.path || process.cwd()),
+          command: command ? String(command) : invocation,
+          agent: chosenAgent,
+          repoId: repository?.id || null,
+          component: component ? String(component) : null,
+          front: front ? String(front) : null,
         });
         push();
         return json(response, 200, result);
@@ -185,7 +329,8 @@ export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) 
         return json(response, 200, result);
       }
 
-      if (request.method === 'GET' && !url.pathname.startsWith('/api/') && serveWeb(url.pathname, response, webRoot)) {
+      if (['GET', 'HEAD'].includes(request.method) && !url.pathname.startsWith('/api/')
+        && serveWeb(url.pathname, response, webRoot, { head: request.method === 'HEAD' })) {
         return undefined;
       }
 
@@ -202,6 +347,8 @@ export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) 
     for (const client of clients) client.end();
     clients.clear();
   });
+
+  server.handraise = { auth, config };
 
   return server;
 }

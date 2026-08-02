@@ -8,7 +8,7 @@ import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { KEYS, PREFIX, sessions, sendKey, sendText } from '../src/control.mjs';
+import { KEYS, PREFIX, sessions, sendKey, sendText, start } from '../src/control.mjs';
 import { ansiToHtml } from '../src/ansi.mjs';
 import { procAlive, readPermissions, snapshot } from '../src/state.mjs';
 
@@ -57,12 +57,29 @@ test('free text is sent literally, and Enter goes as its own call', () => {
   assert.deepEqual(keys[1].at(-1), 'Enter', 'Enter must be a separate send-keys');
 });
 
+test('the same display slug is isolated by repository in tmux', () => {
+  const calls = [];
+  const run = (args) => {
+    calls.push(args);
+    if (args[0] === 'list-sessions') return null;
+    return '';
+  };
+  const result = start({ slug: 'api', cwd: '/code/one', repoId: 'repo-one', component: 'backend', front: 'api', run });
+  const created = calls.find((args) => args[0] === 'new-session');
+  assert.ok(created.includes(`${PREFIX}repo-one--api`));
+  assert.equal(result.controlSlug, 'repo-one--api');
+  assert.ok(calls.some((args) => args.includes('@handraise-slug') && args.at(-1) === 'api'));
+  assert.ok(calls.some((args) => args.includes('@handraise-repo') && args.at(-1) === 'repo-one'));
+});
+
 // ── what proves a request is still live ──────────────────────────────────────
 
 test('our own process seal is alive and an invented one is not', () => {
   const stat = readFileSync(`/proc/${process.pid}/stat`, 'utf8');
   const start = stat.slice(stat.lastIndexOf(')') + 2).split(' ')[19];
+  const boot = readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim();
   assert.equal(procAlive(`${process.pid}@${start}`), true);
+  assert.equal(procAlive(`${process.pid}@${start}@${boot.slice(0, 8)}`), true, 'Director-compatible short boot seals stay valid');
   assert.equal(procAlive(`${process.pid}@${Number(start) + 1}`), false, 'a reused pid must not pass');
   assert.equal(procAlive('999999@1'), false);
   assert.equal(procAlive(''), false);

@@ -35,7 +35,7 @@ export function procAlive(seal) {
   if (!m) return false;
   if (m[3]) {
     const boot = read('/proc/sys/kernel/random/boot_id').trim();
-    if (boot && boot !== m[3]) return false;
+    if (boot && !boot.startsWith(m[3])) return false;
   }
   const stat = read(`/proc/${m[1]}/stat`);
   if (!stat) return false;
@@ -148,8 +148,8 @@ export function snapshot({ root = stateDir(), now = Date.now() / 1000, list = tm
   const live = list();
 
   const sessions = live.map((session) => {
-    const mine = attention.find((a) => a.slug === session.slug) ?? null;
-    const permission = permissions.find((p) => p.slug === session.slug) ?? null;
+    const mine = attention.find((a) => a.slug === session.controlSlug || a.slug === session.slug) ?? null;
+    const permission = permissions.find((p) => p.slug === session.controlSlug || p.slug === session.slug) ?? null;
     const wrapup = wrapupState(session, mine, now);
     const status = permission ? 'blocked'
       : wrapup?.wrapping ? 'wrapping'
@@ -157,8 +157,12 @@ export function snapshot({ root = stateDir(), now = Date.now() / 1000, list = tm
       : 'working';
     return {
       slug: session.slug,
+      controlSlug: session.controlSlug,
       agent: session.agent,
       cwd: session.cwd,
+      repoId: session.repoId,
+      component: session.component,
+      front: session.front,
       attached: session.attached,
       error: session.error,
       status,
@@ -167,6 +171,7 @@ export function snapshot({ root = stateDir(), now = Date.now() / 1000, list = tm
       activity: paneActivity(session, now),
       wrapup,
       permission,
+      controllable: true,
     };
   });
 

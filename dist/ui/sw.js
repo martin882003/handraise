@@ -1,4 +1,4 @@
-const CACHE = 'handraise-shell-v1';
+const CACHE = 'handraise-shell-v2';
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
