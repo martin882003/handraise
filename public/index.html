@@ -4,108 +4,367 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Handraise</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d0f14'/%3E%3Crect x='6' y='7' width='4' height='18' rx='1.4' fill='%23f5a524'/%3E%3Crect x='13' y='7' width='4' height='18' rx='1.4' fill='%236ea8fe'/%3E%3Crect x='20' y='7' width='4' height='18' rx='1.4' fill='%2351d88a'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#12100e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffb84d'/%3E%3Cpath d='M10 15v7c0 4 2.5 6 6.5 6S23 25.5 23 21v-7.5a2 2 0 0 0-4 0V18v-8a2 2 0 0 0-4 0v8-6a2 2 0 0 0-4 0v6-3a2 2 0 0 0-4 0Z' fill='%2312100e' stroke='%2312100e' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
   :root {
-    --bg: #0d0f14;
-    --panel: #151922;
-    --panel-2: #1b2029;
-    --line: #262d3a;
-    --text: #dfe4ee;
-    --muted: #8b94a7;
-    --blocked: #f5a524;
-    --waiting: #6ea8fe;
-    --wrapping: #b89cff;
-    --working: #51d88a;
-    --danger: #ff6b72;
-    --radius: 10px;
+    color-scheme: dark;
+    --canvas: #12100e;
+    --canvas-raised: #171411;
+    --surface: #1c1916;
+    --surface-raised: #24201c;
+    --surface-soft: #2b2621;
+    --line: #3a332c;
+    --line-soft: #2b2722;
+    --text: #faf7f2;
+    --text-soft: #c9c0b5;
+    --muted: #958a7e;
+    --brand: #ffb84d;
+    --brand-bright: #ffd18c;
+    --brand-wash: #3b2b13;
+    --blocked: #ffb84d;
+    --waiting: #78a9ff;
+    --wrapping: #c49bff;
+    --working: #65d6a3;
+    --danger: #ff797e;
+    --shadow: 0 24px 80px rgba(0, 0, 0, .28);
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+    --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   }
   * { box-sizing: border-box; }
+  ::selection { background: var(--brand); color: var(--canvas); }
+  html { min-height: 100%; background: var(--canvas); }
   body {
     margin: 0;
-    background: var(--bg);
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 460px at 8% -10%, rgba(255, 184, 77, .12), transparent 67%),
+      radial-gradient(700px 420px at 88% 0%, rgba(120, 169, 255, .06), transparent 66%),
+      var(--canvas);
     color: var(--text);
-    font: 14px/1.5 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font: 14px/1.5 var(--sans);
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    display: flex; align-items: baseline; gap: 14px;
-    padding: 18px 22px; border-bottom: 1px solid var(--line);
-    position: sticky; top: 0; background: var(--bg); z-index: 5;
+  button, input { font: inherit; }
+  button:focus-visible, input:focus-visible, .card:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
   }
-  h1 { font-size: 15px; margin: 0; letter-spacing: .14em; text-transform: uppercase; }
-  .count { color: var(--muted); }
-  .count b { color: var(--blocked); }
-  /* `align-items: start` so a card with a pending permission grows and the ones
-     beside it keep their own height, instead of every card stretching to match
-     the tallest and floating its text in the middle. */
-  main {
-    padding: 22px; display: grid; gap: 14px; align-items: start;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+
+  .topbar {
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px clamp(20px, 4vw, 56px);
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(18, 16, 14, .82);
+    backdrop-filter: blur(18px) saturate(125%);
+  }
+  .brand-lockup { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    color: var(--canvas);
+    background: linear-gradient(145deg, var(--brand-bright), var(--brand));
+    box-shadow: 0 9px 26px rgba(255, 184, 77, .18), inset 0 1px rgba(255, 255, 255, .35);
+  }
+  .brand-mark svg { width: 28px; height: 28px; }
+  .brand-copy { display: grid; gap: 1px; }
+  h1 { margin: 0; font-size: 16px; line-height: 1.15; letter-spacing: -.01em; }
+  .brand-copy small { color: var(--muted); font-size: 12px; }
+  .fleet-summary {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .025);
+    color: var(--text-soft);
+    font-size: 12px;
+  }
+  .pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--working);
+    box-shadow: 0 0 0 4px rgba(101, 214, 163, .09);
+  }
+  .count b { color: var(--blocked); font-weight: 700; }
+
+  .workspace { width: min(1500px, 100%); margin: 0 auto; padding: 0 clamp(20px, 4vw, 56px) 56px; }
+  .hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 36px;
+    padding: clamp(38px, 7vw, 76px) 0 clamp(28px, 4vw, 44px);
+  }
+  .hero-copy { max-width: 680px; }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    color: var(--brand-bright);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: currentColor; }
+  .hero h2 {
+    margin: 0;
+    max-width: 620px;
+    font-size: clamp(34px, 5vw, 62px);
+    line-height: .98;
+    letter-spacing: -.055em;
+    font-weight: 640;
+  }
+  .hero p:not(.eyebrow) {
+    margin: 18px 0 0;
+    max-width: 570px;
+    color: var(--text-soft);
+    font-size: clamp(14px, 1.4vw, 17px);
+    line-height: 1.6;
+  }
+  .legend {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 9px 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, .018);
+  }
+  .legend span { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+  .legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--state); box-shadow: 0 0 0 3px color-mix(in srgb, var(--state) 11%, transparent); }
+
+  .fleet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+    gap: 16px;
+    align-items: start;
   }
   .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 14px 16px; display: grid; gap: 10px; cursor: pointer;
-    border-left: 3px solid var(--line);
+    --state: var(--muted);
+    position: relative;
+    min-height: 160px;
+    overflow: hidden;
+    display: grid;
+    gap: 14px;
+    padding: 19px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    background: linear-gradient(145deg, rgba(255, 255, 255, .035), transparent 56%), var(--surface);
+    box-shadow: 0 1px rgba(255, 255, 255, .02) inset;
+    cursor: pointer;
+    transition: border-color .18s ease, transform .18s ease, background .18s ease, box-shadow .18s ease;
   }
-  .card:hover { background: var(--panel-2); }
-  .card.blocked { border-left-color: var(--blocked); }
-  .card.waiting { border-left-color: var(--waiting); }
-  .card.wrapping { border-left-color: var(--wrapping); }
-  .card.working { border-left-color: var(--working); }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--state);
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    top: -100px;
+    right: -60px;
+    border-radius: 50%;
+    background: var(--state);
+    filter: blur(54px);
+    opacity: .07;
+    pointer-events: none;
+  }
+  .card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--state) 30%, var(--line)); box-shadow: var(--shadow); background-color: var(--surface-raised); }
+  .card.blocked { --state: var(--blocked); }
+  .card.waiting { --state: var(--waiting); }
+  .card.wrapping { --state: var(--wrapping); }
+  .card.working { --state: var(--working); }
   .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
-  .slug { font-weight: 700; }
+  .session-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .state-dot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--state); box-shadow: 0 0 0 4px color-mix(in srgb, var(--state) 10%, transparent); }
+  .slug { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 680; letter-spacing: -.01em; }
   .tag {
-    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-    padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted);
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border: 1px solid color-mix(in srgb, var(--state) 24%, var(--line));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--state) 7%, transparent);
+    color: var(--state);
+    font: 700 10px/1.2 var(--mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
   }
-  .blocked .tag { color: var(--blocked); border-color: color-mix(in oklab, var(--blocked) 40%, transparent); }
-  .waiting .tag { color: var(--waiting); border-color: color-mix(in oklab, var(--waiting) 40%, transparent); }
-  .wrapping .tag { color: var(--wrapping); border-color: color-mix(in oklab, var(--wrapping) 40%, transparent); }
-  .working .tag { color: var(--working); border-color: color-mix(in oklab, var(--working) 40%, transparent); }
-  .meta { color: var(--muted); font-size: 12px; word-break: break-all; }
+  .meta { color: var(--muted); font: 12px/1.55 var(--mono); word-break: break-word; }
+  .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 2px; color: var(--muted); font-size: 11px; }
+  .agent-badge { display: inline-flex; align-items: center; gap: 6px; text-transform: capitalize; }
+  .agent-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .65; }
+  .open-hint { color: var(--text-soft); transition: transform .18s ease, color .18s ease; }
+  .card:hover .open-hint { color: var(--text); transform: translateX(2px); }
   .ask {
-    background: #221a08; border: 1px solid color-mix(in oklab, var(--blocked) 35%, transparent);
-    border-radius: 8px; padding: 10px 12px; display: grid; gap: 9px;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 11px;
+    padding: 13px;
+    border: 1px solid rgba(255, 184, 77, .24);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(140deg, rgba(255, 184, 77, .11), rgba(255, 184, 77, .035));
   }
-  .ask code { display: block; white-space: pre-wrap; word-break: break-all; color: #ffd591; font-size: 12px; max-height: 160px; overflow: auto; }
+  .ask-title { display: flex; align-items: center; justify-content: space-between; color: var(--brand-bright); font-size: 11px; font-weight: 700; }
+  .ask code { display: block; max-height: 160px; overflow: auto; color: #f5e6cf; font: 12px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
   .btns { display: flex; gap: 8px; }
   button {
-    font: inherit; font-size: 12px; padding: 6px 12px; border-radius: 7px; cursor: pointer;
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface-raised);
+    color: var(--text-soft);
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
   }
-  button:hover { border-color: var(--muted); }
-  button.allow { background: color-mix(in oklab, var(--working) 18%, var(--panel-2)); border-color: color-mix(in oklab, var(--working) 45%, transparent); }
-  button.deny { background: color-mix(in oklab, var(--danger) 16%, var(--panel-2)); border-color: color-mix(in oklab, var(--danger) 45%, transparent); }
-  .empty { color: var(--muted); padding: 40px 22px; grid-column: 1 / -1; }
-  .empty code { color: var(--text); background: var(--panel); padding: 2px 6px; border-radius: 5px; }
+  button:hover { color: var(--text); border-color: var(--muted); transform: translateY(-1px); }
+  button:disabled { cursor: wait; opacity: .55; transform: none; }
+  button.allow { background: var(--brand); border-color: var(--brand); color: var(--canvas); }
+  button.allow:hover { background: var(--brand-bright); border-color: var(--brand-bright); color: var(--canvas); }
+  button.deny { color: #ffb4b6; background: rgba(255, 121, 126, .08); border-color: rgba(255, 121, 126, .22); }
+  .empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 48px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, .015);
+    color: var(--muted);
+    text-align: center;
+  }
+  .empty code { display: inline-block; margin: 5px 2px 0; padding: 3px 7px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface); color: var(--text-soft); font-family: var(--mono); }
 
   dialog {
-    width: min(1180px, 94vw); max-height: 90vh; padding: 0; border: 1px solid var(--line);
-    border-radius: 12px; background: var(--panel); color: var(--text);
+    width: min(1220px, 94vw);
+    max-height: 90vh;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 34px 100px rgba(0, 0, 0, .58);
   }
-  dialog::backdrop { background: rgba(0,0,0,.6); }
+  dialog::backdrop { background: rgba(8, 7, 6, .76); backdrop-filter: blur(7px); }
   .drawer { display: grid; grid-template-rows: auto 1fr auto; max-height: 90vh; }
-  .drawer > header { border-bottom: 1px solid var(--line); background: var(--panel); position: static; }
+  .drawer > header { display: flex; align-items: center; min-height: 72px; padding: 14px 18px; border-bottom: 1px solid var(--line-soft); background: var(--surface-raised); position: static; }
+  .drawer .slug { font-size: 16px; }
   .term {
-    margin: 0; padding: 14px 16px; overflow: auto; background: #0b0d12;
-    white-space: pre-wrap; word-break: break-word; font-size: 12.5px; line-height: 1.45; min-height: 40vh;
+    min-height: 48vh;
+    margin: 0;
+    overflow: auto;
+    padding: 20px 22px;
+    background: #0e0d0b;
+    color: #ded8cf;
+    font: 12.5px/1.55 var(--mono);
+    white-space: pre-wrap;
+    word-break: break-word;
   }
-  .compose { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .compose { display: flex; gap: 8px; padding: 13px 16px; border-top: 1px solid var(--line-soft); background: var(--surface-raised); flex-wrap: wrap; }
   .compose input {
-    flex: 1 1 320px; font: inherit; padding: 8px 11px; border-radius: 7px;
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    min-height: 38px;
+    flex: 1 1 320px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--canvas-raised);
+    color: var(--text);
+    font-family: var(--mono);
   }
-  .compose input:focus { outline: none; border-color: var(--waiting); }
+  .compose input::placeholder { color: #756b61; }
+  .compose input:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px rgba(255, 184, 77, .09); }
   .spacer { flex: 1; }
+
+  @media (max-width: 800px) {
+    .topbar { min-height: 68px; padding-inline: 18px; }
+    .brand-copy small { display: none; }
+    .workspace { padding-inline: 18px; }
+    .hero { align-items: flex-start; flex-direction: column; gap: 24px; padding-top: 42px; }
+    .hero h2 { font-size: clamp(38px, 12vw, 54px); }
+    .legend { width: 100%; grid-template-columns: repeat(2, 1fr); }
+    dialog { width: 100vw; max-width: 100vw; max-height: 100dvh; height: 100dvh; border: 0; border-radius: 0; }
+    .drawer { max-height: 100dvh; height: 100dvh; }
+    .term { min-height: 0; }
+  }
+  @media (max-width: 480px) {
+    .fleet-summary { padding: 7px 9px; }
+    .fleet-summary .summary-label { display: none; }
+    .hero { padding-top: 34px; }
+    .hero p:not(.eyebrow) { font-size: 14px; }
+    .legend { gap: 8px 12px; padding: 13px; }
+    .card { min-height: 150px; padding: 17px; }
+    .drawer > header .row { align-items: flex-start; }
+    .compose button:not([data-key="Enter"]):not([data-key="C-c"]) { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>Handraise</h1>
-  <span class="count" id="count"></span>
+<header class="topbar">
+  <div class="brand-lockup">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none">
+        <path d="M10 15v7c0 4 2.5 6 6.5 6S23 25.5 23 21v-7.5a2 2 0 0 0-4 0V18v-8a2 2 0 0 0-4 0v8-6a2 2 0 0 0-4 0v6-3a2 2 0 0 0-4 0Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="brand-copy">
+      <h1>Handraise</h1>
+      <small>Local agent operations</small>
+    </span>
+  </div>
+  <div class="fleet-summary">
+    <i class="pulse" aria-hidden="true"></i>
+    <span class="summary-label">Fleet status</span>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
 </header>
 
-<main id="grid"></main>
+<main class="workspace">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow">Your local fleet</p>
+      <h2 id="hero-title">Know who needs you.</h2>
+      <p>Every coding agent, every live terminal, and every permission request — one calm place to keep work moving.</p>
+    </div>
+    <div class="legend" aria-label="Session status legend">
+      <span style="--state:var(--blocked)"><i></i>Needs you</span>
+      <span style="--state:var(--working)"><i></i>Working</span>
+      <span style="--state:var(--waiting)"><i></i>Waiting</span>
+      <span style="--state:var(--wrapping)"><i></i>Wrapping up</span>
+    </div>
+  </section>
+  <section class="fleet-grid" id="grid" aria-label="Agent sessions" aria-live="polite"></section>
+</main>
 
 <dialog id="drawer">
   <div class="drawer">
@@ -181,17 +440,19 @@ function render(state) {
     const card = document.createElement('article');
     card.className = `card ${session.status}`;
     card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `Open ${session.slug}, ${LABEL[session.status]}`);
 
     const head = document.createElement('div');
     head.className = 'row';
-    head.innerHTML = `<span class="slug"></span><span class="tag">${LABEL[session.status]}${
+    head.innerHTML = `<span class="session-title"><i class="state-dot" aria-hidden="true"></i><span class="slug"></span></span><span class="tag">${LABEL[session.status]}${
       session.waitingSeconds ? ` · ${ago(session.waitingSeconds)}` : ''}</span>`;
     head.querySelector('.slug').textContent = session.slug;
     card.append(head);
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.textContent = [session.agent, session.cwd, session.activity ? `seen ${session.activity.minutesAgo}m ago` : null]
+    meta.textContent = [session.cwd, session.activity ? `active ${session.activity.minutesAgo}m ago` : null]
       .filter(Boolean).join(' · ');
     card.append(meta);
 
@@ -203,6 +464,17 @@ function render(state) {
     }
 
     if (session.permission) card.append(askBlock(session));
+
+    const foot = document.createElement('div');
+    foot.className = 'card-foot';
+    const agent = document.createElement('span');
+    agent.className = 'agent-badge';
+    agent.textContent = session.agent || 'agent';
+    const hint = document.createElement('span');
+    hint.className = 'open-hint';
+    hint.textContent = 'Open session  →';
+    foot.append(agent, hint);
+    card.append(foot);
 
     card.addEventListener('click', (event) => {
       if (event.target.closest('button')) return;
@@ -223,6 +495,7 @@ function askBlock(session) {
   box.className = 'ask';
 
   const title = document.createElement('div');
+  title.className = 'ask-title';
   title.textContent = `${permission.tool?.name || 'tool'} · waiting ${ago(permission.waitingSeconds)}`;
   box.append(title);
 
