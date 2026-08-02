@@ -33,6 +33,16 @@ handraise install-hooks      # wires the attention + permission hooks
 handraise serve              # http://127.0.0.1:4177
 ```
 
+When installing from the repository, build the browser app once before linking:
+
+```bash
+git clone https://github.com/martin882003/handraise.git
+cd handraise
+npm install
+npm run build
+npm link
+```
+
 Then start an agent through handraise so the panel can drive it:
 
 ```bash
@@ -92,6 +102,21 @@ Handraise binds to `127.0.0.1` and has no authentication, because it drives real
 agents with real permissions on your machine. If you point `--host` at anything
 routable, put something that authenticates in front of it. There is no relay and
 nothing leaves your machine.
+
+## Open it from your phone
+
+The interface is responsive and installable from the browser as a home-screen
+app. For private access away from the workstation, keep Handraise bound to
+localhost and use [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve):
+
+```bash
+handraise serve
+tailscale serve --bg http://127.0.0.1:4177
+```
+
+Open the HTTPS URL reported by Tailscale on a phone in the same tailnet. Tailnet
+access controls stay in front of Handraise; its permission and terminal routes
+are not exposed to the public internet. Do not use Tailscale Funnel for this.
 
 ## Status
 

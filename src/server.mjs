@@ -7,8 +7,8 @@
 // you should only make behind something that authenticates.
 
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, watch } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { mkdirSync, readFileSync, statSync, watch } from 'node:fs';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { capture, exists, kill, askToWrapUp, sendKey, sendText, start } from './control.mjs';
@@ -16,7 +16,45 @@ import { ansiToHtml } from './ansi.mjs';
 import { resolvePermission, snapshot, stateDir } from './state.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const PAGE = join(here, '..', 'public', 'index.html');
+const WEB_ROOT = join(here, '..', 'dist', 'ui');
+
+const CONTENT_TYPES = {
+  '.css': 'text/css; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+};
+
+function serveWeb(pathname, response, webRoot) {
+  let relative;
+  try { relative = decodeURIComponent(pathname).replace(/^\/+/, '') || 'index.html'; }
+  catch { return false; }
+  if (relative.split('/').includes('..')) return false;
+
+  const root = resolve(webRoot);
+  let file = resolve(root, relative);
+  if (file !== root && !file.startsWith(`${root}${sep}`)) return false;
+  try {
+    if (!statSync(file).isFile()) return false;
+  } catch {
+    if (extname(relative)) return false;
+    file = join(root, 'index.html');
+    try { if (!statSync(file).isFile()) return false; } catch { return false; }
+  }
+
+  const extension = extname(file);
+  response.writeHead(200, {
+    'content-type': CONTENT_TYPES[extension] || 'application/octet-stream',
+    'cache-control': relative.startsWith('assets/')
+      ? 'public, max-age=31536000, immutable'
+      : 'no-cache',
+  });
+  response.end(readFileSync(file));
+  return true;
+}
 
 // Session names come from the URL, so the pattern is the security boundary for
 // everything downstream: tmux target names are built from it.
@@ -37,7 +75,7 @@ function body(request) {
   });
 }
 
-export function createHandraise({ root = stateDir() } = {}) {
+export function createHandraise({ root = stateDir(), webRoot = WEB_ROOT } = {}) {
   mkdirSync(join(root, 'attention'), { recursive: true });
   mkdirSync(join(root, 'permissions'), { recursive: true });
 
@@ -65,11 +103,6 @@ export function createHandraise({ root = stateDir() } = {}) {
     const parts = url.pathname.split('/').filter(Boolean);
 
     try {
-      if (request.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
-        response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-        return response.end(readFileSync(PAGE));
-      }
-
       if (request.method === 'GET' && url.pathname === '/api/state') {
         return json(response, 200, snapshot({ root }));
       }
@@ -150,6 +183,10 @@ export function createHandraise({ root = stateDir() } = {}) {
         const result = resolvePermission(root, parts[2], String(id ?? ''), String(behavior ?? ''));
         push();
         return json(response, 200, result);
+      }
+
+      if (request.method === 'GET' && !url.pathname.startsWith('/api/') && serveWeb(url.pathname, response, webRoot)) {
+        return undefined;
       }
 
       return json(response, 404, { error: 'not found' });

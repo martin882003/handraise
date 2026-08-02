@@ -1,0 +1,17 @@
+{
+  "name": "Handraise",
+  "short_name": "Handraise",
+  "description": "Local agent control",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#171714",
+  "theme_color": "#171714",
+  "icons": [
+    {
+      "src": "/handraise-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

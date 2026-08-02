@@ -3,17 +3,49 @@
   "version": "0.1.0",
   "description": "Every coding agent on your machine, in one place. Watch them, talk to them, and answer their permission prompts without hunting for the right terminal.",
   "type": "module",
-  "bin": { "handraise": "bin/handraise.mjs" },
-  "files": ["bin", "src", "public", "hooks", "README.md", "LICENSE"],
-  "engines": { "node": ">=20" },
+  "bin": {
+    "handraise": "bin/handraise.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "dist",
+    "hooks/*.py",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node bin/handraise.mjs serve",
-    "test": "node --test"
+    "dev:ui": "vite --config vite.config.mjs",
+    "build": "vite build --config vite.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
+    "prepack": "npm run build && npm run typecheck && npm test"
   },
   "keywords": [
-    "claude-code", "codex", "coding-agents", "tmux", "dashboard",
-    "ai-agents", "developer-tools", "terminal"
+    "claude-code",
+    "codex",
+    "coding-agents",
+    "tmux",
+    "dashboard",
+    "ai-agents",
+    "developer-tools",
+    "terminal"
   ],
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/martin882003/handraise.git" }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martin882003/handraise.git"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.0"
+  }
 }
