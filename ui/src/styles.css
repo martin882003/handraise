@@ -521,16 +521,17 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .entity-copy { max-width: 760px; margin: 14px 0 0; color: var(--ink-soft); font-size: 13px; white-space: pre-wrap; }
 .entity-hero > dl { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(100px, 170px)); gap: 10px; margin: 4px 0 0; }
 .entity-hero > dl div { display: grid; gap: 3px; padding: 11px 12px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface); }
-.component-detail-hero > dl .progress { border-top: 2px solid var(--signal); }
-.component-detail-hero > dl .active { border-top: 2px solid var(--working); }
-.component-detail-hero > dl .open { border-top: 2px solid var(--waiting); }
-.component-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; align-items: stretch; }
-.component-metrics > div { min-height: 92px; align-content: center; }
-.component-metrics .progress { align-items: center; }
-.component-metrics .progress dd { display: flex; align-items: center; }
+.component-detail-hero > dl .progress,
+.component-detail-hero > dl .active,
+.component-detail-hero > dl .open { border: 0; }
+.component-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; align-items: start; gap: 26px; }
+.component-metrics > div { min-height: 92px; display: flex !important; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; padding: 6px 0 0 !important; border: 0 !important; background: transparent !important; }
+.component-metrics dt { order: 2; color: var(--muted); font-size: 9px; text-align: center; }
+.component-metrics dd { order: 1; min-height: 56px; display: grid !important; place-items: center; color: var(--ink); font: 700 22px/1 var(--mono); }
+.component-metrics .progress dd { display: grid !important; align-items: center; justify-content: center; }
 .progress-ring { --progress: 0%; position: relative; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(var(--signal) var(--progress), var(--soft) 0); }
 .progress-ring::after { content: ''; position: absolute; inset: 5px; border-radius: inherit; background: var(--surface); }
-.progress-ring > span { position: relative; z-index: 1; color: var(--ink); font: 700 12px/1.2 var(--mono); }
+.progress-ring > span { position: relative; z-index: 1; color: var(--ink); font: 700 15px/1.2 var(--mono); }
 .front-detail-hero > dl .progress { border-top: 2px solid var(--working); }
 .front-detail-hero > dl .checklist { border-top: 2px solid var(--waiting); }
 .front-detail-hero > dl .priority { border-top: 2px solid var(--signal); }
