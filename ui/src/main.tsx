@@ -100,6 +100,14 @@ interface AgentConfig {
   model: string;
   effort: string;
   efforts: string[];
+  auth: {
+    connected: boolean;
+    provider: string | null;
+    email: string | null;
+    plan: string | null;
+    loginCommand: string;
+    logoutCommand: string;
+  };
 }
 
 interface Settings {
@@ -153,6 +161,25 @@ const STATUS_LABEL: Record<Status, string> = {
   working: 'Working',
   paused: 'Paused',
 };
+
+type ThemeName = 'orange' | 'coral' | 'indigo';
+type ColorMode = 'light' | 'dark';
+const THEMES: Array<{ id: ThemeName; title: string }> = [
+  { id: 'orange', title: 'Orange' },
+  { id: 'coral', title: 'Coral' },
+  { id: 'indigo', title: 'Indigo' },
+];
+
+function savedTheme(): ThemeName {
+  if (typeof window === 'undefined') return 'indigo';
+  const value = window.localStorage.getItem('handraise-theme');
+  return THEMES.some((theme) => theme.id === value) ? value as ThemeName : 'indigo';
+}
+
+function savedColorMode(): ColorMode {
+  if (typeof window === 'undefined') return 'light';
+  return window.localStorage.getItem('handraise-color-mode') === 'dark' ? 'dark' : 'light';
+}
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -645,6 +672,7 @@ function FrontDetail({
 
 interface DeviceInfo { id: string; name: string; createdAt: string; lastSeenAt: string; expiresAt: string }
 interface PairingInfo { code: string; expiresAt: string; qr: string; url: string }
+interface DirectoryListing { path: string; parent: string | null; directories: Array<{ name: string; path: string }> }
 
 function RepositorySettings({
   repository, agents, onRefresh,
@@ -683,8 +711,8 @@ function RepositorySettings({
 }
 
 function SettingsView({
-  settings, onRefresh,
-}: { settings: Settings | null; onRefresh: () => Promise<void> }) {
+  settings, onRefresh, theme, onThemeChange, mode, onModeChange,
+}: { settings: Settings | null; onRefresh: () => Promise<void>; theme: ThemeName; onThemeChange: (theme: ThemeName) => void; mode: ColorMode; onModeChange: (mode: ColorMode) => void }) {
   const [repoPath, setRepoPath] = useState('');
   const [repoName, setRepoName] = useState('');
   const [draftAgents, setDraftAgents] = useState<Record<string, AgentConfig>>({});
@@ -692,6 +720,10 @@ function SettingsView({
   const [currentDeviceId, setCurrentDeviceId] = useState('');
   const [pairing, setPairing] = useState<PairingInfo | null>(null);
   const [error, setError] = useState('');
+  const [deviceError, setDeviceError] = useState('');
+  const [pickingRepository, setPickingRepository] = useState(false);
+  const [copiedCommand, setCopiedCommand] = useState('');
+  const [directoryListing, setDirectoryListing] = useState<DirectoryListing | null>(null);
 
   const loadDevices = useCallback(async () => {
     const result = await api<{ devices: DeviceInfo[]; currentDeviceId: string }>('/api/auth/devices');
@@ -700,7 +732,11 @@ function SettingsView({
   }, []);
 
   useEffect(() => { if (settings) setDraftAgents(settings.agents); }, [settings]);
-  useEffect(() => { void loadDevices(); }, [loadDevices]);
+  useEffect(() => {
+    void loadDevices();
+    const timer = window.setInterval(() => void loadDevices(), 3_000);
+    return () => window.clearInterval(timer);
+  }, [loadDevices]);
 
   const addRepository = async () => {
     setError('');
@@ -714,19 +750,79 @@ function SettingsView({
     } catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); }
   };
 
+  const browseRepository = async (path = '') => {
+    setError('');
+    setPickingRepository(true);
+    try {
+      const result = await api<DirectoryListing>('/api/repositories/browse-directory', {
+        method: 'POST', body: JSON.stringify({ path }),
+      });
+      setDirectoryListing(result);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+    } finally {
+      setPickingRepository(false);
+    }
+  };
+
   const saveAgents = async () => {
     await api('/api/settings/agents', { method: 'PATCH', body: JSON.stringify(draftAgents) });
     await onRefresh();
   };
 
   const startPairing = async () => setPairing(await api<PairingInfo>('/api/auth/pairing', { method: 'POST', body: '{}' }));
+  const copyLoginCommand = async (id: string, command: string) => {
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(command);
+      else window.prompt('Run this command in a terminal', command);
+      setCopiedCommand(id);
+      window.setTimeout(() => setCopiedCommand((current) => current === id ? '' : current), 2_000);
+    } catch {
+      setCopiedCommand('');
+    }
+  };
+
+  const chooseDirectory = (path: string) => {
+    setRepoPath(path);
+    setDirectoryListing(null);
+  };
 
   return (
+    <>
     <div class="settings-stack">
+      <section class="settings-section appearance-section">
+        <header><div><h2>Appearance</h2></div></header>
+        <div class="mode-picker" role="radiogroup" aria-label="Color mode">
+          {(['light', 'dark'] as ColorMode[]).map((option) => <button
+            key={option}
+            class={`mode-option ${mode === option ? 'active' : ''}`}
+            role="radio"
+            aria-checked={mode === option}
+            onClick={() => onModeChange(option)}
+          >
+            {option === 'light'
+              ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
+              : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z" /></svg>}
+            <span>{option === 'light' ? 'Light' : 'Dark'}</span>
+          </button>)}
+        </div>
+        <div class="theme-picker" role="radiogroup" aria-label="Color theme">
+          {THEMES.map((option) => <button
+            key={option.id}
+            class={`theme-option ${theme === option.id ? 'active' : ''} ${option.id}`}
+            role="radio"
+            aria-checked={theme === option.id}
+            onClick={() => onThemeChange(option.id)}
+          >
+            <span class="theme-swatch" aria-hidden="true" />
+            <strong>{option.title}</strong>
+          </button>)}
+        </div>
+      </section>
       <section class="settings-section">
         <header><div><h2>Repositories</h2><p>Each repository owns its components, fronts and sessions.</p></div></header>
         <div class="repo-form">
-          <label><span>Repository path</span><input value={repoPath} onInput={(event) => setRepoPath(event.currentTarget.value)} placeholder="/home/you/code/project" autoFocus={Boolean(settings && settings.repositories.length === 0)} /></label>
+          <label class="path-picker"><span>Repository path</span><div><input value={repoPath} onInput={(event) => setRepoPath(event.currentTarget.value)} placeholder="/home/you/code/project" autoFocus={Boolean(settings && settings.repositories.length === 0)} /><button class="path-browse" type="button" aria-label="Browse for a repository" title="Browse for a repository" onClick={() => void browseRepository()} disabled={pickingRepository}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-9.5a2 2 0 0 1 2-2Z" /></svg></button></div></label>
           <label><span>Display name</span><input value={repoName} onInput={(event) => setRepoName(event.currentTarget.value)} placeholder="Optional" /></label>
           <button class="primary" disabled={!repoPath} onClick={() => void addRepository()}>Connect repository</button>
         </div>
@@ -737,35 +833,64 @@ function SettingsView({
       </section>
 
       <section class="settings-section">
-        <header><div><h2>Agent integrations</h2><p>Handraise uses the authenticated CLI already installed on this machine.</p></div><button onClick={() => void saveAgents()}>Save agents</button></header>
+        <header><div><h2>Agent integrations</h2><p>Handraise reuses the accounts already authenticated in each CLI. Tokens stay with the CLI and never enter Handraise.</p></div><button onClick={() => void saveAgents()}>Save agents</button></header>
         <div class="agent-settings">
-          {Object.entries(draftAgents).map(([id, agent]) => (
-            <article key={id}>
+          {Object.entries(draftAgents).map(([id, agent]) => {
+            const auth = agent.auth;
+            const provider = auth.provider === 'firstParty' ? 'Anthropic' : auth.provider;
+            const accountDetail = [provider, auth.plan ? auth.plan.toUpperCase() : null].filter(Boolean).join(' · ');
+            return <article key={id}>
               <header><span><strong>{agent.title}</strong><small>{agent.installed ? agent.version : `${agent.binary} not found`}</small></span><input type="checkbox" checked={agent.enabled} onChange={(event) => setDraftAgents({ ...draftAgents, [id]: { ...agent, enabled: event.currentTarget.checked } })} /></header>
+              <div class={`agent-account ${auth.connected ? 'connected' : 'disconnected'}`}>
+                <i aria-hidden="true" />
+                <span><strong>{auth.connected ? (auth.email || provider || 'Account connected') : (agent.installed ? 'Account not connected' : 'CLI not installed')}</strong><small>{auth.connected ? (accountDetail || 'Authenticated account') : agent.installed ? `Run ${auth.loginCommand} in a terminal.` : `Install ${agent.binary} to enable this integration.`}</small></span>
+                <b>{auth.connected ? 'Connected' : 'Offline'}</b>
+              </div>
+              {!auth.connected && agent.installed && <button class="agent-login" type="button" onClick={() => void copyLoginCommand(id, auth.loginCommand)}>{copiedCommand === id ? 'Login command copied' : 'Copy login command'}</button>}
               <label><span>Default model</span><input value={agent.model} placeholder="CLI default" onInput={(event) => setDraftAgents({ ...draftAgents, [id]: { ...agent, model: event.currentTarget.value } })} /></label>
               <label><span>Reasoning effort</span><select value={agent.effort} onChange={(event) => setDraftAgents({ ...draftAgents, [id]: { ...agent, effort: event.currentTarget.value } })}><option value="">CLI default</option>{agent.efforts.map((effort) => <option value={effort}>{effort}</option>)}</select></label>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>
       </section>
 
       <section class="settings-section">
         <header><div><h2>Paired devices</h2><p>Generate a one-time QR or code for another browser.</p></div><button class="primary" onClick={() => void startPairing()}>Pair another device</button></header>
-        {pairing && <div class="pairing-panel"><img src={pairing.qr} width="180" height="180" alt="Pairing QR code" /><div><span>One-time code</span><strong>{pairing.code}</strong><small>Expires {new Date(pairing.expiresAt).toLocaleTimeString()}</small><small>{new URL(pairing.url).hostname === '127.0.0.1' || new URL(pairing.url).hostname === 'localhost' ? 'For phone pairing, open Settings through the Tailscale HTTPS URL first.' : new URL(pairing.url).host}</small></div></div>}
+        {pairing && <div class="pairing-panel"><img src={pairing.qr} width="180" height="180" alt="Pairing QR code" /><div><span>One-time code</span><strong>{pairing.code}</strong><small>Expires {new Date(pairing.expiresAt).toLocaleTimeString()}</small><small>{new URL(pairing.url).hostname === '127.0.0.1' || new URL(pairing.url).hostname === 'localhost' ? 'The QR needs a reachable URL. Start Handraise with --public-url when pairing over the internet.' : new URL(pairing.url).host}</small></div></div>}
+        {deviceError && <p class="form-error" role="alert">{deviceError}</p>}
         <div class="settings-list">
           {devices.map((device) => (
             <article key={device.id}>
               <span><strong>{device.name}{device.id === currentDeviceId ? ' · this device' : ''}</strong><small>Last seen {new Date(device.lastSeenAt).toLocaleString()}</small></span>
               <button class="danger" disabled={devices.length === 1} title={devices.length === 1 ? 'Pair another device before revoking this one' : undefined} onClick={async () => {
-                await api(`/api/auth/devices/${device.id}`, { method: 'DELETE' });
-                if (device.id === currentDeviceId) window.location.reload();
-                else await loadDevices();
+                setDeviceError('');
+                try {
+                  await api(`/api/auth/devices/${device.id}`, { method: 'DELETE' });
+                  if (device.id === currentDeviceId) window.location.reload();
+                  else await loadDevices();
+                } catch (reason) {
+                  setDeviceError(reason instanceof Error ? reason.message : String(reason));
+                }
               }}>Revoke</button>
             </article>
           ))}
         </div>
       </section>
     </div>
+    {directoryListing && <div class="directory-browser-backdrop" role="presentation">
+      <section class="directory-browser" role="dialog" aria-modal="true" aria-labelledby="directory-browser-title">
+        <header>
+          <div><p class="section-kicker">Choose a repository</p><h2 id="directory-browser-title">Browse folders</h2></div>
+          <button type="button" aria-label="Close folder browser" onClick={() => setDirectoryListing(null)}>×</button>
+        </header>
+        <div class="directory-browser-path"><button type="button" disabled={!directoryListing.parent} onClick={() => directoryListing.parent && void browseRepository(directoryListing.parent)}>↑</button><code>{directoryListing.path}</code></div>
+        <div class="directory-browser-list">
+          {directoryListing.directories.length ? directoryListing.directories.map((directory) => <button type="button" key={directory.path} onClick={() => void browseRepository(directory.path)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-9.5Z" /></svg><span>{directory.name}</span><b>›</b></button>) : <p class="empty-state">No subfolders here.</p>}
+        </div>
+        <footer><button type="button" onClick={() => setDirectoryListing(null)}>Cancel</button><button class="primary" type="button" onClick={() => chooseDirectory(directoryListing.path)}>Use this folder</button></footer>
+      </section>
+    </div>}
+    </>
   );
 }
 
@@ -775,11 +900,32 @@ function Workbench() {
   const [route, setRoute] = useState<RouteState>(() => parseRoute());
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [theme, setTheme] = useState<ThemeName>(() => savedTheme());
+  const [mode, setMode] = useState<ColorMode>(() => savedColorMode());
+  const settingsReturnRoute = useRef<RouteState>(route.view === 'settings' ? baseRoute() : route);
 
   const navigate = useCallback((next: RouteState, { replace = false } = {}) => {
     window.history[replace ? 'replaceState' : 'pushState']({}, '', routePath(next));
     setRoute(next);
   }, []);
+
+  useEffect(() => {
+    if (route.view !== 'settings') settingsReturnRoute.current = route;
+  }, [route]);
+
+  const toggleSettings = () => {
+    navigate(route.view === 'settings' ? settingsReturnRoute.current : baseRoute('settings'));
+  };
+  const toggleMode = () => setMode((current) => current === 'light' ? 'dark' : 'light');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem('handraise-theme', theme);
+  }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.mode = mode;
+    window.localStorage.setItem('handraise-color-mode', mode);
+  }, [mode]);
 
   const refreshRepositories = useCallback(async () => {
     const repositoryData = await api<{ repositories: Repository[] }>('/api/repositories');
@@ -896,27 +1042,35 @@ function Workbench() {
             <small>Local agent control</small>
           </span>
         </button>
-        {hasRepositories && <nav class="primary-nav" aria-label="Primary navigation">
-          <button class={route.view === 'repositories' ? 'active' : ''} onClick={() => navigate(baseRoute())}>Repositories</button>
-          {selectedRepo && <button class={route.view === 'components' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo))}>Components</button>}
-          {selectedRepo && <button class={route.view === 'sessions' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo, 'sessions'))}>Sessions</button>}
+        {selectedRepo && <nav class="primary-nav" aria-label="Primary navigation">
+          <button class={route.view === 'components' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo))}>Components</button>
+          <button class={route.view === 'sessions' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo, 'sessions'))}>Sessions</button>
         </nav>}
-        {hasRepositories && <select class="repo-select" aria-label="Repository" value={selectedRepo || ''} onChange={(event) => {
-          const repositoryId = event.currentTarget.value;
-          navigate(repositoryId ? repositoryRoute(repositoryId) : baseRoute());
-        }}>
-          <option value="">Choose repository</option>
-          {repositories.map((repository) => <option value={repository.id}>{repository.name}</option>)}
-        </select>}
         {hasRepositories && <div class="fleet-summary" aria-live="polite">
           <i class={connected ? 'online' : ''} aria-hidden="true" />
           <span>{headerStatus}</span>
         </div>}
-        <button class={`settings-shortcut ${route.view === 'settings' ? 'active' : ''}`} onClick={() => navigate(baseRoute('settings'))}>Settings</button>
+        <button
+          class="mode-shortcut"
+          aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          title={mode === 'light' ? 'Dark mode' : 'Light mode'}
+          onClick={toggleMode}
+        >{mode === 'light'
+          ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
+          : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z" /></svg>}
+        </button>
+        <button
+          class={`settings-shortcut ${route.view === 'settings' ? 'active' : ''}`}
+          aria-label={route.view === 'settings' ? 'Close settings' : 'Open settings'}
+          title={route.view === 'settings' ? 'Close settings' : 'Settings'}
+          aria-pressed={route.view === 'settings'}
+          onClick={toggleSettings}
+        ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg></button>
         <button
           class={`mobile-settings-shortcut ${route.view === 'settings' ? 'active' : ''}`}
-          aria-label="Open settings"
-          onClick={() => navigate(baseRoute('settings'))}
+          aria-label={route.view === 'settings' ? 'Close settings' : 'Open settings'}
+          aria-pressed={route.view === 'settings'}
+          onClick={toggleSettings}
         ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg></button>
       </header>
 
@@ -958,7 +1112,7 @@ function Workbench() {
 
         {route.view === 'settings' && <>
           <PageHeading eyebrow="Handraise" title="Settings" />
-          <SettingsView settings={settings} onRefresh={refreshManagement} />
+          <SettingsView settings={settings} onRefresh={refreshManagement} theme={theme} onThemeChange={setTheme} mode={mode} onModeChange={setMode} />
         </>}
       </main>
 

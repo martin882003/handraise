@@ -1,13 +1,19 @@
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   chmodSync, mkdirSync, readFileSync, realpathSync, renameSync, statSync, writeFileSync,
 } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
 const AGENTS = {
-  claude: { title: 'Claude Code', binary: 'claude', efforts: ['low', 'medium', 'high', 'xhigh'] },
-  codex: { title: 'Codex', binary: 'codex', efforts: ['low', 'medium', 'high', 'xhigh'] },
+  claude: {
+    title: 'Claude Code', binary: 'claude', efforts: ['low', 'medium', 'high', 'xhigh'],
+    authStatus: ['auth', 'status', '--json'], loginCommand: 'claude auth login', logoutCommand: 'claude auth logout',
+  },
+  codex: {
+    title: 'Codex', binary: 'codex', efforts: ['low', 'medium', 'high', 'xhigh'],
+    authStatus: ['login', 'status'], loginCommand: 'codex login', logoutCommand: 'codex logout',
+  },
 };
 
 const shellQuote = (value) => `'${String(value).replace(/'/g, `'\\''`)}'`;
@@ -51,6 +57,39 @@ function gitRoot(path) {
     }).trim();
   } catch {
     throw new Error(`'${absolute}' is not a Git repository`);
+  }
+}
+
+function authSnapshot(id, definition) {
+  const base = {
+    connected: false,
+    provider: null,
+    email: null,
+    plan: null,
+    loginCommand: definition.loginCommand,
+    logoutCommand: definition.logoutCommand,
+  };
+  try {
+    const result = spawnSync(definition.binary, definition.authStatus, {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 5_000,
+    });
+    if (result.error || result.status !== 0) throw result.error || new Error('auth status failed');
+    const stdout = String(result.stdout || '').trim();
+    const output = `${stdout}\n${String(result.stderr || '').trim()}`.trim();
+    if (id === 'claude') {
+      const status = JSON.parse(stdout);
+      return {
+        ...base,
+        connected: Boolean(status.loggedIn),
+        provider: status.apiProvider || null,
+        email: status.email || null,
+        plan: status.subscriptionType || null,
+      };
+    }
+    const connected = /logged in/i.test(output) && !/not logged in/i.test(output);
+    return { ...base, connected, provider: connected ? 'ChatGPT' : null };
+  } catch {
+    return base;
   }
 }
 
@@ -187,13 +226,17 @@ export class ConfigStore {
       repositories: settings.repositories.map((repo) => ({ ...repo, adapter: detectAdapter(repo.path) })),
       agents: Object.fromEntries(Object.entries(settings.agents).map(([id, configured]) => {
         const definition = AGENTS[id];
+        const { authStatus: _authStatus, loginCommand: _loginCommand, logoutCommand: _logoutCommand, ...publicDefinition } = definition;
         let version = null;
         try {
           version = execFileSync(definition.binary, ['--version'], {
             encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 3_000,
           }).trim().split('\n')[0];
         } catch { /* not installed */ }
-        return [id, { ...definition, ...configured, installed: Boolean(version), version }];
+        return [id, {
+          ...publicDefinition, ...configured, installed: Boolean(version), version,
+          auth: authSnapshot(id, definition),
+        }];
       })),
     };
   }

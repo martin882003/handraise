@@ -7,7 +7,9 @@
 // you should only make behind something that authenticates.
 
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, statSync, watch } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { mkdirSync, readFileSync, readdirSync, realpathSync, statSync, watch } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
@@ -18,6 +20,43 @@ import { createPairingAuth } from './auth.mjs';
 import { agentInvocation, createConfigStore, detectAdapter } from './config.mjs';
 import { repositoriesSnapshot } from './repositories.mjs';
 import { resolvePermission, snapshot, stateDir } from './state.mjs';
+
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
+
+async function pickDirectory() {
+  const commands = process.platform === 'darwin'
+    ? [['osascript', ['-e', 'POSIX path of (choose folder with prompt "Choose a Git repository")']]]
+    : process.platform === 'win32'
+      ? [['powershell.exe', ['-NoProfile', '-STA', '-Command', 'Add-Type -AssemblyName System.Windows.Forms; $d=New-Object System.Windows.Forms.FolderBrowserDialog; if($d.ShowDialog() -eq "OK"){[Console]::Write($d.SelectedPath)}']]]
+      : [['zenity', ['--file-selection', '--directory', '--title=Choose a Git repository']], ['kdialog', ['--getexistingdirectory', '.', 'Choose a Git repository']]];
+
+  for (const [command, args] of commands) {
+    try {
+      const { stdout } = await execFileAsync(command, args, { timeout: 30_000, maxBuffer: 32_000 });
+      const path = String(stdout || '').trim();
+      if (path) return path;
+    } catch (error) {
+      // ENOENT means this picker is not installed. Any other exit is a user
+      // cancellation (or a picker failure), so do not open a second dialog.
+      if (error?.code !== 'ENOENT') return null;
+    }
+  }
+  return null;
+}
+
+function browseDirectory(pathname = '') {
+  const requested = String(pathname || '').trim() || homedir();
+  const path = realpathSync(resolve(requested));
+  if (!statSync(path).isDirectory()) throw new Error('path is not a directory');
+  const parent = path === dirname(path) ? null : dirname(path);
+  const directories = readdirSync(path, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !['.git', 'node_modules'].includes(entry.name))
+    .map((entry) => ({ name: entry.name, path: join(path, entry.name) }))
+    .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }));
+  return { path, parent, directories };
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = join(here, '..', 'dist', 'ui');
@@ -85,6 +124,17 @@ function requestOrigin(request) {
   return `${forwardedProto || 'http'}://${forwardedHost || request.headers.host || '127.0.0.1'}`;
 }
 
+function publicOrigin(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(String(value).trim());
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 function secureRequest(request) {
   return requestOrigin(request).startsWith('https://');
 }
@@ -108,8 +158,10 @@ function body(request) {
 
 export function createHandraise({
   root = stateDir(), webRoot = WEB_ROOT,
+  publicUrl = process.env.HANDRAISE_PUBLIC_URL || null,
   auth = createPairingAuth({ root }), config = createConfigStore({ root }),
 } = {}) {
+  const pairingOrigin = publicOrigin(publicUrl);
   mkdirSync(join(root, 'attention'), { recursive: true });
   mkdirSync(join(root, 'permissions'), { recursive: true });
 
@@ -175,7 +227,7 @@ export function createHandraise({
 
       if (request.method === 'POST' && url.pathname === '/api/auth/pairing') {
         const pairing = auth.startPairing();
-        const pairUrl = new URL('/', requestOrigin(request));
+        const pairUrl = new URL('/', pairingOrigin || requestOrigin(request));
         pairUrl.searchParams.set('pair', pairing.token);
         const qr = await QRCode.toDataURL(pairUrl.toString(), {
           width: 320, margin: 1,
@@ -217,6 +269,15 @@ export function createHandraise({
       if (request.method === 'POST' && url.pathname === '/api/repositories') {
         const payload = await body(request);
         return json(response, 201, { repository: config.addRepository(payload.path, payload) });
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/repositories/pick-directory') {
+        return json(response, 200, { path: await pickDirectory() });
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/repositories/browse-directory') {
+        const payload = await body(request);
+        return json(response, 200, browseDirectory(payload.path));
       }
 
       if (request.method === 'POST' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'initialize') {

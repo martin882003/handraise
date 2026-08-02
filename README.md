@@ -147,7 +147,20 @@ tailscale serve --bg http://127.0.0.1:4177
 Open the HTTPS URL reported by Tailscale on a phone in the same tailnet. Tailnet
 access controls stay in front of Handraise, and Handraise still requires a paired
 device. Open Settings through that HTTPS URL before generating the QR so the QR
-contains an address the phone can reach. Do not use Tailscale Funnel for this.
+contains an address the phone can reach.
+
+For a temporary internet smoke test without installing Tailscale on the phone,
+use any HTTPS tunnel and tell Handraise which public URL to put in its QR codes.
+For example, with Cloudflare's account-less quick tunnel:
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:4177
+HANDRAISE_PUBLIC_URL=https://<the-url-cloudflared-printed> handraise serve
+```
+
+Then open Handraise locally on the computer, connect the repository, and generate
+the QR from Settings. The phone only scans the QR; it does not need Tailscale.
+Quick tunnels are temporary and are suitable for testing only, not production.
 
 ## Status
 

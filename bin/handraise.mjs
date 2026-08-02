@@ -51,7 +51,8 @@ function serve() {
   requireTmux();
   const port = Number(flag('port', process.env.HANDRAISE_PORT || 4177));
   const host = flag('host', '127.0.0.1');
-  const server = createHandraise();
+  const publicUrl = flag('public-url', process.env.HANDRAISE_PUBLIC_URL || null);
+  const server = createHandraise({ publicUrl });
   const repositoryPath = flag('repo');
   if (repositoryPath) server.handraise.config.addRepository(repositoryPath);
   server.listen(port, host, () => {
