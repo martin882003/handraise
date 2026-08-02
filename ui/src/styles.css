@@ -190,6 +190,11 @@ select:focus-visible,
   position: relative;
 }
 
+.page-heading-copy { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.page-heading-back { width: 32px; min-height: 32px; flex: 0 0 auto; display: grid; place-items: center; margin-top: 3px; padding: 0; border-color: var(--line); border-radius: 9px; background: var(--surface); color: var(--ink-soft); }
+.page-heading-back:hover { border-color: var(--signal); background: var(--signal-wash); color: var(--signal); }
+.page-heading-back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
 .page-heading::after { content: none; }
 
 .page-heading p {
