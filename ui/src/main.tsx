@@ -502,6 +502,18 @@ function RepositoryOverview({ repositories, onSelect }: { repositories: Reposito
   );
 }
 
+function EmptyRepositoryHome({ onConnect }: { onConnect: () => void }) {
+  return (
+    <section class="empty-repository-home">
+      <p class="section-kicker">Local workspace</p>
+      <h1>Start with a repository.</h1>
+      <p>Connect a local Git repository to see its components, work fronts and agent sessions.</p>
+      <button class="primary" onClick={onConnect}>Connect repository</button>
+      <small>Handraise reads the repository in place. It does not upload or duplicate it.</small>
+    </section>
+  );
+}
+
 function InitializeRepository({ repository, onInitialize }: { repository: Repository; onInitialize: () => Promise<void> }) {
   return (
     <div class="empty-state action-empty">
@@ -714,7 +726,7 @@ function SettingsView({
       <section class="settings-section">
         <header><div><h2>Repositories</h2><p>Each repository owns its components, fronts and sessions.</p></div></header>
         <div class="repo-form">
-          <label><span>Repository path</span><input value={repoPath} onInput={(event) => setRepoPath(event.currentTarget.value)} placeholder="/home/you/code/project" /></label>
+          <label><span>Repository path</span><input value={repoPath} onInput={(event) => setRepoPath(event.currentTarget.value)} placeholder="/home/you/code/project" autoFocus={Boolean(settings && settings.repositories.length === 0)} /></label>
           <label><span>Display name</span><input value={repoName} onInput={(event) => setRepoName(event.currentTarget.value)} placeholder="Optional" /></label>
           <button class="primary" disabled={!repoPath} onClick={() => void addRepository()}>Connect repository</button>
         </div>
@@ -763,12 +775,10 @@ function Workbench() {
   const [route, setRoute] = useState<RouteState>(() => parseRoute());
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigate = useCallback((next: RouteState, { replace = false } = {}) => {
     window.history[replace ? 'replaceState' : 'pushState']({}, '', routePath(next));
     setRoute(next);
-    setMobileMenuOpen(false);
   }, []);
 
   const refreshRepositories = useCallback(async () => {
@@ -867,6 +877,7 @@ function Workbench() {
   const headerStatus = selectedRepository
     ? (connected ? (state.at ? liveSummary : 'Connecting…') : (state.at ? `Offline · ${summary} last seen` : 'Connecting…'))
     : `${repositories.length} repositor${repositories.length === 1 ? 'y' : 'ies'}`;
+  const hasRepositories = repositories.length > 0;
   const repositoryRoute = (repositoryId: string, view: 'components' | 'sessions' = 'components'): RouteState => ({
     ...baseRoute(view), repositoryId,
   });
@@ -877,7 +888,7 @@ function Workbench() {
 
   return (
     <>
-      <header class="topbar">
+      <header class={`topbar ${hasRepositories ? '' : 'empty'}`}>
         <button class="brand-lockup" onClick={() => navigate(baseRoute())} aria-label="Choose a repository">
           <img src="/handraise-mark.png" width="38" height="38" alt="" />
           <span>
@@ -885,42 +896,34 @@ function Workbench() {
             <small>Local agent control</small>
           </span>
         </button>
-        <nav class="primary-nav" aria-label="Primary navigation">
+        {hasRepositories && <nav class="primary-nav" aria-label="Primary navigation">
           <button class={route.view === 'repositories' ? 'active' : ''} onClick={() => navigate(baseRoute())}>Repositories</button>
           {selectedRepo && <button class={route.view === 'components' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo))}>Components</button>}
           {selectedRepo && <button class={route.view === 'sessions' ? 'active' : ''} onClick={() => navigate(repositoryRoute(selectedRepo, 'sessions'))}>Sessions</button>}
-        </nav>
-        <select class="repo-select" aria-label="Repository" value={selectedRepo || ''} onChange={(event) => {
+        </nav>}
+        {hasRepositories && <select class="repo-select" aria-label="Repository" value={selectedRepo || ''} onChange={(event) => {
           const repositoryId = event.currentTarget.value;
           navigate(repositoryId ? repositoryRoute(repositoryId) : baseRoute());
         }}>
           <option value="">Choose repository</option>
           {repositories.map((repository) => <option value={repository.id}>{repository.name}</option>)}
-        </select>
-        <div class="fleet-summary" aria-live="polite">
+        </select>}
+        {hasRepositories && <div class="fleet-summary" aria-live="polite">
           <i class={connected ? 'online' : ''} aria-hidden="true" />
           <span>{headerStatus}</span>
-        </div>
+        </div>}
         <button class={`settings-shortcut ${route.view === 'settings' ? 'active' : ''}`} onClick={() => navigate(baseRoute('settings'))}>Settings</button>
         <button
-          class="mobile-menu-toggle"
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={mobileMenuOpen}
-          aria-controls="mobile-utility-menu"
-          onClick={() => setMobileMenuOpen((open) => !open)}
-        ><span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" /></button>
-        <section id="mobile-utility-menu" class={`mobile-menu-panel ${mobileMenuOpen ? 'open' : ''}`}>
-          <button class={route.view === 'settings' ? 'active' : ''} onClick={() => navigate(baseRoute('settings'))}>
-            <span>Settings</span><small>Repositories, agents and paired devices</small>
-          </button>
-          <div class="mobile-menu-status" aria-live="polite"><i class={connected ? 'online' : ''} aria-hidden="true" /><span>{headerStatus}</span></div>
-        </section>
+          class={`mobile-settings-shortcut ${route.view === 'settings' ? 'active' : ''}`}
+          aria-label="Open settings"
+          onClick={() => navigate(baseRoute('settings'))}
+        ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg></button>
       </header>
 
       <main class="workspace">
         {route.view === 'repositories' && <>
-          <PageHeading eyebrow="Local workspaces" title="Repositories" />
-          <RepositoryOverview repositories={repositories} onSelect={(repositoryId) => navigate(repositoryRoute(repositoryId))} />
+          {hasRepositories ? <><PageHeading eyebrow="Local workspaces" title="Repositories" /><RepositoryOverview repositories={repositories} onSelect={(repositoryId) => navigate(repositoryRoute(repositoryId))} /></>
+            : <EmptyRepositoryHome onConnect={() => navigate(baseRoute('settings'))} />}
         </>}
 
         {route.view === 'sessions' && selectedRepository && <>
