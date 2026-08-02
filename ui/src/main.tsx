@@ -573,7 +573,7 @@ function ComponentsView({
             </dl>
             <span class="drill-label">Open component →</span>
           </button>
-          <button class="component-edit" type="button" aria-label={`Rename ${component.title}`} title="Rename component" onClick={() => void onRename(component.slug)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.5 16 4 20ZM14.5 6.5l3 3" /></svg></button>
+          <button class="component-edit" type="button" aria-label={`Edit ${component.title}`} title="Edit component" onClick={() => void onRename(component.slug)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.5 16 4 20ZM14.5 6.5l3 3" /></svg></button>
         </article>
       ))}
     </section>
