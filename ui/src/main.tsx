@@ -563,7 +563,7 @@ function ComponentsView({
   return (
     <section class="component-grid">
       {repository.components.map((component) => (
-        <article class="component-card" key={component.slug}>
+        <article class={`component-card ${component.state}`} key={component.slug}>
           <button class="component-card-main" type="button" onClick={() => onOpen(component.slug)}>
             <header>
               <span><strong>{component.title}</strong></span>

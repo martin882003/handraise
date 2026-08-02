@@ -408,7 +408,9 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
   transition: border-color .14s ease, background-color .14s ease;
 }
 .repository-card { border-top: 0; }
-.component-card { position: relative; gap: 12px; box-shadow: 0 3px 12px rgb(0 0 0 / 7%); }
+.component-card { --component-state: var(--muted); position: relative; gap: 12px; box-shadow: 0 3px 12px rgb(0 0 0 / 7%); }
+.component-card.active { --component-state: var(--working); }
+.component-card::before { content: ""; position: absolute; inset: 14px auto 14px -1px; width: 3px; border-radius: 3px; background: var(--component-state); }
 .component-card-main { min-height: 0; width: 100%; display: grid; gap: 12px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: inherit; text-align: left; }
 .component-card-main:hover { border-color: transparent; background: transparent; color: inherit; }
 .component-card-main header { padding-right: 28px; }
@@ -467,7 +469,7 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .repository-card dd,
 .component-card dd { margin: 0; font: 700 15px/1.3 var(--mono); }
 .component-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.component-card p { margin: 0; color: var(--ink-soft); font-size: 12px; }
+.component-card p { margin: 0; padding: 8px 10px; border-radius: 7px; background: color-mix(in srgb, var(--component-state) 8%, var(--surface)); color: var(--ink-soft); font-size: 12px; }
 .component-progress-heading { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font: 9px/1.3 var(--mono); text-transform: uppercase; }
 .component-progress-heading b { color: var(--ink); font-size: 12px; }
 .component-progress { height: 3px; overflow: hidden; background: var(--soft); }
@@ -476,6 +478,8 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .component-card dl .queued dd { color: var(--waiting); }
 .component-card dl .blocked dd { color: var(--blocked); }
 .component-card dl .done dd { color: var(--ink-soft); }
+.component-card dl { padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.component-card .drill-label { display: block; margin-top: 0; padding-top: 9px; border-top: 1px solid var(--line-soft); color: var(--signal); text-decoration: none; }
 .drill-label { margin-top: -5px; color: var(--ink-soft); font: 10px/1.4 var(--mono); text-decoration: underline var(--line); text-underline-offset: 3px; }
 
 .front-list { display: grid; gap: 24px; padding-top: 18px; }
