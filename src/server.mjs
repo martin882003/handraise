@@ -18,7 +18,7 @@ import { capture, exists, kill, askToWrapUp, sendKey, sendText, start } from './
 import { ansiToHtml } from './ansi.mjs';
 import { createPairingAuth } from './auth.mjs';
 import { agentInvocation, createConfigStore, detectAdapter } from './config.mjs';
-import { createComponent, repositoriesSnapshot, updateComponent } from './repositories.mjs';
+import { createComponent, createFront, deleteFront, repositoriesSnapshot, updateComponent } from './repositories.mjs';
 import { resolvePermission, snapshot, stateDir } from './state.mjs';
 
 import { promisify } from 'node:util';
@@ -286,6 +286,22 @@ export function createHandraise({
         const payload = await body(request);
         const component = updateComponent({ ...repository, adapter: detectAdapter(repository.path) }, parts[4], payload);
         return json(response, 200, { component });
+      }
+
+      if (request.method === 'POST' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'components' && parts[4] && parts[5] === 'fronts' && !parts[6]) {
+        const repository = config.read().repositories.find((item) => item.id === parts[2]);
+        if (!repository) return json(response, 404, { error: 'repository not found' });
+        const component = repositoriesSnapshot({ repositories: [{ ...repository, adapter: detectAdapter(repository.path) }] }).repositories[0].components.find((item) => item.slug === parts[4]);
+        if (!component) return json(response, 404, { error: 'component not found' });
+        const created = createFront({ ...repository, adapter: detectAdapter(repository.path) }, parts[4], await body(request));
+        return json(response, 201, { front: created });
+      }
+
+      if (request.method === 'DELETE' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'components' && parts[4] && parts[5] === 'fronts' && parts[6]) {
+        const repository = config.read().repositories.find((item) => item.id === parts[2]);
+        if (!repository) return json(response, 404, { error: 'repository not found' });
+        const result = deleteFront({ ...repository, adapter: detectAdapter(repository.path) }, parts[4], parts[6]);
+        return json(response, 200, result);
       }
 
       if (request.method === 'POST' && parts[0] === 'api' && parts[1] === 'repositories' && parts[2] && parts[3] === 'components' && !parts[4]) {

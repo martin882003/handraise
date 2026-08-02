@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { procAlive } from './state.mjs';
@@ -96,6 +96,52 @@ function componentFilename(repository, slug) {
     return parseComponent(join(componentDirectory, name), fallbackSlug).slug === slug;
   });
   return filename ? { componentDirectory, filename } : null;
+}
+
+function frontDirectory(repository) {
+  return join(repository.path, repository.adapter === 'director' ? '.claude/runtime/plans' : '.handraise/fronts');
+}
+
+function frontFilename(repository, slug) {
+  const directory = frontDirectory(repository);
+  const filename = listMarkdown(directory).find((name) => name.replace(/\.md$/, '') === slug);
+  return filename ? { directory, filename } : null;
+}
+
+export function createFront(repository, componentSlug, { title, next, impact = 'medio', complexity = 'media' } = {}) {
+  const cleanTitle = cleanMultiline(title, 160).replace(/\n+/g, ' ');
+  const cleanNext = cleanMultiline(next, 500).replace(/\n+/g, ' ');
+  if (!cleanTitle) throw new Error('front title is required');
+  if (!cleanNext) throw new Error('front next step is required');
+  const cleanImpact = ['alto', 'medio', 'bajo'].includes(String(impact)) ? String(impact) : 'medio';
+  const cleanComplexity = ['alta', 'media', 'baja'].includes(String(complexity)) ? String(complexity) : 'media';
+  const directory = frontDirectory(repository);
+  mkdirSync(directory, { recursive: true });
+  const existing = new Set(listMarkdown(directory).map((name) => name.replace(/\.md$/, '')));
+  const base = componentSlugValue(cleanTitle);
+  let candidate = base;
+  let suffix = 2;
+  while (existing.has(candidate)) candidate = `${base}-${suffix++}`;
+  const markdown = `---\nslug: ${candidate}\ncomponent: ${componentSlug}\nstate: queued\nimpact: ${cleanImpact}\ncomplexity: ${cleanComplexity}\n---\n\n# ${candidate} — ${cleanTitle}\n\n**Componente:** ${componentSlug}\n\n## ▶ Handoff\n\n- **Próximo paso:** ${cleanNext}\n\n## Checklist\n\n- [ ] ${cleanNext}\n`;
+  const path = join(directory, `${candidate}.md`);
+  writeFileSync(path, markdown);
+  return parseFront(path, candidate, repository.adapter, new Map());
+}
+
+function componentSlugValue(value) {
+  return componentSlug(value);
+}
+
+export function deleteFront(repository, componentSlug, slug) {
+  const location = frontFilename(repository, slug);
+  if (!location) throw new Error('front not found');
+  const front = parseFront(join(location.directory, location.filename), slug, repository.adapter, new Map());
+  if (front.component !== componentSlug) throw new Error('front does not belong to this component');
+  if (repository.adapter === 'director' && directorLanes(repository).some((lane) => lane.slug === slug && lane.liveness === 'live')) {
+    throw new Error('cannot delete an active front');
+  }
+  unlinkSync(join(location.directory, location.filename));
+  return { deleted: slug };
 }
 
 export function createComponent(repository, { title, slug, scope, limits, delegation, territory } = {}) {

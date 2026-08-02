@@ -704,11 +704,78 @@ function ComponentNameDialog({
   );
 }
 
+interface FrontDialogState {
+  componentSlug: string;
+}
+
+interface FrontDraft {
+  title: string;
+  next: string;
+  impact: string;
+  complexity: string;
+}
+
+function FrontDialog({
+  state, onCancel, onSubmit,
+}: {
+  state: FrontDialogState;
+  onCancel: () => void;
+  onSubmit: (draft: FrontDraft) => Promise<void>;
+}) {
+  const [title, setTitle] = useState('');
+  const [next, setNext] = useState('');
+  const [impact, setImpact] = useState('medio');
+  const [complexity, setComplexity] = useState('media');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const submit = async () => {
+    if (!title.trim()) { setError('Enter a front name.'); return; }
+    if (!next.trim()) { setError('Describe the next step.'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await onSubmit({ title: title.trim(), next: next.trim(), impact, complexity });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div class="component-name-backdrop" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget && !saving) onCancel();
+    }}>
+      <section class="component-name-dialog" role="dialog" aria-modal="true" aria-labelledby="front-dialog-title">
+        <header>
+          <div>
+            <p class="section-kicker">New front · {state.componentSlug}</p>
+            <h2 id="front-dialog-title">Create a front</h2>
+          </div>
+          <button type="button" aria-label="Close" onClick={onCancel} disabled={saving}>×</button>
+        </header>
+        <p class="component-name-help">Give the agent a concrete next piece of work.</p>
+        <label><span>Front name</span><input ref={inputRef} value={title} disabled={saving} placeholder="e.g. Add remote pairing" onInput={(event) => setTitle(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') void submit(); if (event.key === 'Escape' && !saving) onCancel(); }} /></label>
+        <label><span>Next step</span><textarea value={next} disabled={saving} placeholder="What should happen first?" rows={3} onInput={(event) => setNext(event.currentTarget.value)} /></label>
+        <div class="front-dialog-selects">
+          <label><span>Impact</span><select value={impact} disabled={saving} onChange={(event) => setImpact(event.currentTarget.value)}><option value="alto">High</option><option value="medio">Medium</option><option value="bajo">Low</option></select></label>
+          <label><span>Complexity</span><select value={complexity} disabled={saving} onChange={(event) => setComplexity(event.currentTarget.value)}><option value="alta">High</option><option value="media">Medium</option><option value="baja">Low</option></select></label>
+        </div>
+        {error && <p class="form-error" role="alert">{error}</p>}
+        <footer><button type="button" onClick={onCancel} disabled={saving}>Cancel</button><button class="primary" type="button" onClick={() => void submit()} disabled={saving || !title.trim() || !next.trim()}>{saving ? 'Creating…' : 'Create front'}</button></footer>
+      </section>
+    </div>
+  );
+}
+
 const FRONT_LABEL: Record<FrontState, string> = {
   active: 'Active', queued: 'Queued', blocked: 'Blocked', paused: 'Paused', done: 'Done',
 };
 
-function FrontRows({ fronts, onOpen }: { fronts: Front[]; onOpen: (slug: string) => void }) {
+function FrontRows({ fronts, onOpen, onDelete }: { fronts: Front[]; onOpen: (slug: string) => void; onDelete: (slug: string) => void }) {
   if (!fronts.length) return <p class="empty-state">No fronts registered in this component.</p>;
   return (
     <section class="front-list">
@@ -719,12 +786,13 @@ function FrontRows({ fronts, onOpen }: { fronts: Front[]; onOpen: (slug: string)
           <section class="front-group" key={state}>
             <header><span>{FRONT_LABEL[state]}</span><b>{group.length}</b></header>
             {group.map((front) => (
-              <button class={`front-row ${front.state}`} key={front.slug} onClick={() => onOpen(front.slug)}>
+              <div class={`front-row ${front.state}`} key={front.slug}>
                 <i aria-hidden="true" />
-                <span class="front-main"><strong>{front.title}</strong><small>{front.slug} · {front.component}</small></span>
+                <button class="front-row-main" type="button" onClick={() => onOpen(front.slug)}><span class="front-main"><strong>{front.title}</strong><small>{front.slug} · {front.component}</small></span></button>
                 <span class="front-priority">{front.impact && front.complexity ? `${front.impact} / ${front.complexity}` : 'unranked'}</span>
                 <span class="front-progress">{front.done}/{front.total} · {front.percent}%</span>
-              </button>
+                <button class="front-row-delete" type="button" aria-label={`Delete ${front.title}`} title={front.state === 'active' ? 'Active fronts cannot be deleted' : 'Delete front'} disabled={front.state === 'active'} onClick={() => onDelete(front.slug)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v6m4-6v6" /></svg></button>
+              </div>
             ))}
           </section>
         );
@@ -734,8 +802,8 @@ function FrontRows({ fronts, onOpen }: { fronts: Front[]; onOpen: (slug: string)
 }
 
 function ComponentDetail({
-  component, onBack, onOpenFront,
-}: { component: Component; onBack: () => void; onOpenFront: (slug: string) => void }) {
+  component, onBack, onOpenFront, onCreateFront, onDeleteFront,
+}: { component: Component; onBack: () => void; onOpenFront: (slug: string) => void; onCreateFront: () => void; onDeleteFront: (slug: string) => void }) {
   const description = Object.entries(component.sections).find(([title]) => /alcance|scope|purpose/i.test(title))?.[1]
     || Object.values(component.sections).find(Boolean)
     || 'This component has no written scope yet.';
@@ -753,8 +821,8 @@ function ComponentDetail({
         </dl>
       </section>
       <section class="detail-section">
-        <header><div><p class="section-kicker">Work</p><h2>Fronts</h2></div><span>{fronts.length} total</span></header>
-        <FrontRows fronts={fronts} onOpen={onOpenFront} />
+        <header><div><p class="section-kicker">Work</p><h2>Fronts</h2></div><div class="detail-section-actions"><span>{fronts.length} total</span><button class="primary" type="button" onClick={onCreateFront}>New front</button></div></header>
+        <FrontRows fronts={fronts} onOpen={onOpenFront} onDelete={onDeleteFront} />
       </section>
     </>
   );
@@ -1024,6 +1092,7 @@ function Workbench() {
   const [theme, setTheme] = useState<ThemeName>(() => savedTheme());
   const [mode, setMode] = useState<ColorMode>(() => savedColorMode());
   const [componentDialog, setComponentDialog] = useState<ComponentDialogState | null>(null);
+  const [frontDialog, setFrontDialog] = useState<FrontDialogState | null>(null);
   const settingsReturnRoute = useRef<RouteState>(route.view === 'settings' ? baseRoute() : route);
 
   const navigate = useCallback((next: RouteState, { replace = false } = {}) => {
@@ -1170,6 +1239,26 @@ function Workbench() {
     setComponentDialog(null);
     await refreshRepositories();
   };
+  const createFront = () => {
+    if (!selectedComponent) return;
+    setFrontDialog({ componentSlug: selectedComponent.slug });
+  };
+  const submitFront = async (draft: FrontDraft) => {
+    if (!selectedRepository || !frontDialog) return;
+    await api(`/api/repositories/${selectedRepository.id}/components/${encodeURIComponent(frontDialog.componentSlug)}/fronts`, {
+      method: 'POST', body: JSON.stringify(draft),
+    });
+    setFrontDialog(null);
+    await refreshRepositories();
+  };
+  const deleteFront = async (slug: string) => {
+    if (!selectedRepository || !selectedComponent) return;
+    const front = selectedComponent.fronts.find((item) => item.slug === slug);
+    if (!front || !window.confirm(`Delete ${front.title}? This removes its plan from the repository.`)) return;
+    await api(`/api/repositories/${selectedRepository.id}/components/${encodeURIComponent(selectedComponent.slug)}/fronts/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+    if (route.frontSlug === slug) navigate(repositoryRoute(selectedRepository.id), { replace: true });
+    await refreshRepositories();
+  };
   const needsYou = visibleSessions.filter((session) => ['blocked', 'waiting'].includes(session.status)).length;
   const summary = visibleSessions.length
     ? `${visibleSessions.length} session${visibleSessions.length === 1 ? '' : 's'}`
@@ -1260,6 +1349,8 @@ function Workbench() {
               component={selectedComponent}
               onBack={() => navigate(repositoryRoute(selectedRepository.id))}
               onOpenFront={(frontSlug) => navigate({ ...repositoryRoute(selectedRepository.id), componentSlug: selectedComponent.slug, frontSlug })}
+              onCreateFront={createFront}
+              onDeleteFront={(frontSlug) => void deleteFront(frontSlug)}
             /> : <>
               <PageHeading eyebrow={selectedRepository.name} title="Components" back={() => navigate(baseRoute())}>
                 {selectedRepository.components.length > 0 && <button class="primary" onClick={() => void createComponent()}>New component</button>}
@@ -1288,6 +1379,7 @@ function Workbench() {
           : undefined}
       />
       {componentDialog && <ComponentNameDialog state={componentDialog} onCancel={() => setComponentDialog(null)} onSubmit={submitComponentDialog} />}
+      {frontDialog && <FrontDialog state={frontDialog} onCancel={() => setFrontDialog(null)} onSubmit={submitFront} />}
     </>
   );
 }

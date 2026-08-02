@@ -486,7 +486,7 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .front-row {
   --front-state: var(--muted);
   display: grid;
-  grid-template-columns: 4px minmax(0, 1fr) 130px 100px;
+  grid-template-columns: 4px minmax(0, 1fr) 130px 100px 28px;
   align-items: center;
   gap: 12px;
   min-height: 58px;
@@ -505,6 +505,11 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .front-row.queued { --front-state: var(--waiting); }
 .front-row.done { --front-state: var(--muted); opacity: .72; }
 .front-row > i { width: 3px; height: 30px; border-radius: 2px; background: var(--front-state); }
+.front-row-main { min-width: 0; min-height: 38px; display: block; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--ink); text-align: left; }
+.front-row-main:hover { border-color: transparent; background: transparent; color: var(--ink); }
+.front-row-delete { width: 28px; min-height: 28px; display: grid; place-items: center; padding: 0; border-color: transparent; background: transparent; color: var(--muted); }
+.front-row-delete:hover { border-color: var(--line); background: var(--surface); color: var(--danger); }
+.front-row-delete svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .front-main { display: grid; min-width: 0; }
 .front-main strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .front-main small,
@@ -559,6 +564,8 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .detail-section > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .detail-section h2 { margin: 0; font-size: 20px; }
 .detail-section > header > span { color: var(--muted); font: 10px/1.4 var(--mono); }
+.detail-section-actions { display: flex; align-items: center; gap: 10px; }
+.detail-section-actions button { min-height: 31px; }
 .linked-session-row { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding: 14px; border: 1px solid var(--line-soft); border-radius: 7px; background: var(--surface); }
 .linked-session-row > span { display: grid; min-width: 0; margin-right: auto; }
 .linked-session-row small { color: var(--muted); font: 10px/1.4 var(--mono); }
@@ -632,6 +639,10 @@ button.danger { border-color: #704447; background: transparent; color: var(--dan
 .component-name-dialog > label > span { color: var(--muted); font: 10px/1.3 var(--mono); }
 .component-name-dialog input { min-height: 42px; width: 100%; padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); }
 .component-name-dialog textarea { width: 100%; min-height: 96px; padding: 9px 11px; resize: vertical; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font: 12px/1.45 var(--sans); }
+.component-name-dialog select { min-height: 42px; width: 100%; padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); }
+.front-dialog-selects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.front-dialog-selects label { display: grid; gap: 6px; }
+.front-dialog-selects label > span { color: var(--muted); font: 10px/1.3 var(--mono); }
 .component-name-dialog > footer { display: flex; justify-content: flex-end; gap: 8px; }
 .pairing-panel { display: flex; align-items: center; gap: 20px; padding: 14px; border: 1px solid rgb(0 122 255 / 28%); border-radius: 12px; background: var(--signal-wash); }
 .pairing-panel img { border-radius: 4px; }
@@ -760,9 +771,11 @@ dialog::backdrop { background: rgba(5, 5, 4, .72); }
   .session-card { min-height: 134px; padding: 15px; }
   .drawer-header { align-items: flex-start; }
   .composer input { flex-basis: 100%; }
-  .front-row { grid-template-columns: 4px minmax(0, 1fr) auto; }
+  .front-row { grid-template-columns: 4px minmax(0, 1fr) 28px; }
   .front-priority { display: none; }
-  .front-progress { grid-column: 2 / -1; text-align: left; }
+  .front-row > i { grid-row: 1 / span 2; }
+  .front-progress { grid-column: 2 / 3; grid-row: 2; text-align: left; }
+  .front-row-delete { grid-column: 3; grid-row: 1 / span 2; }
   .repo-form { grid-template-columns: 1fr; }
   .repo-form button { grid-column: auto; }
   .repository-defaults { grid-template-columns: 1fr; }
