@@ -10,6 +10,7 @@
     "bin",
     "src",
     "dist",
+    "benchmark",
     "hooks/*.py",
     "README.md",
     "LICENSE"
@@ -23,7 +24,9 @@
     "build": "vite build --config vite.config.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --test",
-    "prepack": "npm run build && npm run typecheck && npm test"
+    "benchmark": "node scripts/quality-benchmark.mjs",
+    "benchmark:gate": "node scripts/quality-benchmark.mjs --gate --no-write",
+    "prepack": "npm run build && npm run typecheck && npm test && npm run benchmark:gate"
   },
   "keywords": [
     "claude-code",

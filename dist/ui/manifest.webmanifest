@@ -4,8 +4,8 @@
   "description": "Local agent control",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#171714",
-  "theme_color": "#171714",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
   "icons": [
     {
       "src": "/handraise-mark.png",

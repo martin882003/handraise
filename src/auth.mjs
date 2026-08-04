@@ -140,11 +140,11 @@ export class PairingAuth {
     return { token, device: publicDevice };
   }
 
-  revoke(id) {
+  revoke(id, { allowFinal = false } = {}) {
     const data = this.#read();
     const previous = data.devices.length;
     const active = data.devices.filter((device) => !device.expiresAt || Date.parse(device.expiresAt) > this.now());
-    if (active.length === 1 && active[0].id === id) {
+    if (!allowFinal && active.length === 1 && active[0].id === id) {
       throw new Error('pair another device before revoking the final active device');
     }
     data.devices = data.devices.filter((device) => device.id !== id);

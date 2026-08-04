@@ -25,6 +25,7 @@ import os
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 
 # Seconds of turn after which we assume you went to do something else.
@@ -75,6 +76,40 @@ def session_slug() -> str | None:
     return name[len("handraise-"):] if name.startswith("handraise-") else None
 
 
+def tmux_option(name: str) -> str:
+    try:
+        return subprocess.run(
+            ["tmux", "show-options", "-v", name], capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def record_session_end(root: Path, slug: str, session: str, cwd: str, payload: dict) -> None:
+    """Durable fallback for turns that end while the Handraise server is down."""
+    directory = root / "history"
+    directory.mkdir(parents=True, exist_ok=True)
+    now = time.time()
+    started = float(tmux_option("@handraise-started") or 0)
+    event_id = uuid.uuid4().hex
+    event = {
+        "id": event_id, "type": "ended", "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
+        "slug": tmux_option("@handraise-slug") or slug,
+        "controlSlug": slug, "repoId": tmux_option("@handraise-repo") or None,
+        "component": tmux_option("@handraise-component") or None,
+        "front": tmux_option("@handraise-front") or None,
+        "agent": tmux_option("@handraise-agent") or None,
+        "role": tmux_option("@handraise-role") or "agent",
+        "cwd": tmux_option("@handraise-cwd") or cwd,
+        "sessionId": session, "reason": payload.get("reason") or "session ended",
+        "startedAt": started or None, "durationSeconds": round(now - started) if started else None,
+    }
+    path = directory / f"{round(now * 1000):013d}-{event_id}.json"
+    temporary = path.with_name(f"{path.name}.tmp-{os.getpid()}")
+    temporary.write_text(json.dumps(event, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
 def notify(title: str, body: str, urgent: bool, key: str) -> None:
     """The notification clears itself.
 
@@ -114,6 +149,7 @@ def main() -> None:
     path = directory / f"{session}.json"
 
     if event in CLEAR:
+        record_session_end(state_dir(), slug, session, cwd, payload)
         path.unlink(missing_ok=True)
         return
 

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "benchmarkVersion": "1.0.0",
+  "protocolVersion": "blind-owner-review-v1",
+  "gating": false,
+  "reviewerPseudonym": "replace-with-private-pseudonym",
+  "assignments": [
+    {
+      "caseId": "replace-with-case-id",
+      "blindedCandidateId": "A",
+      "usefulStartingPoint": null,
+      "ratings": {
+        "evidenceIntegrity": null,
+        "boundaryUsefulness": null,
+        "frontUsefulness": null,
+        "uncertaintyHonesty": null
+      },
+      "harmfulErrors": [],
+      "missingResponsibilities": [],
+      "closestReferenceAlternative": null,
+      "rationale": ""
+    }
+  ]
+}

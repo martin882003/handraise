@@ -8,12 +8,18 @@ import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { KEYS, PREFIX, sessions, sendKey, sendText, start } from '../src/control.mjs';
+import {
+  askToPause, askToWrapUp, KEYS, PREFIX, resume, sessions, sendKey, sendText, start,
+} from '../src/control.mjs';
 import { ansiToHtml } from '../src/ansi.mjs';
-import { procAlive, readPermissions, snapshot } from '../src/state.mjs';
+import { pauseState, procAlive, readPermissions, snapshot } from '../src/state.mjs';
 
-const FIELDS = (name, { attached = '0', activity = '1700000000', agent = '', wrapup = '', error = '', cwd = '/tmp' } = {}) =>
-  [name, attached, activity, agent, wrapup, error, cwd].join('\t');
+const FIELDS = (name, {
+  attached = '0', activity = '1700000000', agent = '', wrapup = '', error = '', cwd = '/tmp',
+  repoId = '', component = '', front = '', displaySlug = '', pause = '', started = '', role = '', runId = '',
+} = {}) => [
+  name, attached, activity, agent, wrapup, error, cwd, repoId, component, front, displaySlug, pause, started, role, runId,
+].join('\t');
 
 // ── which sessions are ours ──────────────────────────────────────────────────
 
@@ -64,12 +70,42 @@ test('the same display slug is isolated by repository in tmux', () => {
     if (args[0] === 'list-sessions') return null;
     return '';
   };
-  const result = start({ slug: 'api', cwd: '/code/one', repoId: 'repo-one', component: 'backend', front: 'api', run });
+  const result = start({ slug: 'api', cwd: '/code/one', repoId: 'repo-one', component: 'backend', front: 'api', runId: 'run-123', run });
   const created = calls.find((args) => args[0] === 'new-session');
   assert.ok(created.includes(`${PREFIX}repo-one--api`));
   assert.equal(result.controlSlug, 'repo-one--api');
   assert.ok(calls.some((args) => args.includes('@handraise-slug') && args.at(-1) === 'api'));
   assert.ok(calls.some((args) => args.includes('@handraise-repo') && args.at(-1) === 'repo-one'));
+  assert.ok(calls.some((args) => args.includes('@handraise-run') && args.at(-1) === 'run-123'));
+});
+
+test('run identity survives tmux discovery for fleet and orchestration reconciliation', () => {
+  const [session] = sessions(() => FIELDS(`${PREFIX}repo-one--api`, {
+    agent: 'codex', repoId: 'repo-one', component: 'backend', front: 'api', displaySlug: 'api', runId: 'run-123',
+  }));
+  assert.equal(session.runId, 'run-123');
+  const root = mkdtempSync(join(tmpdir(), 'handraise-run-identity-'));
+  const fleet = snapshot({ root, list: () => [session] });
+  assert.equal(fleet.sessions[0].runId, 'run-123', 'fleet normalization must not discard durable run identity');
+});
+
+test('lifecycle orders target the repository-scoped control slug', () => {
+  const calls = [];
+  const row = FIELDS(`${PREFIX}repo-one--api`, {
+    agent: 'codex', repoId: 'repo-one', displaySlug: 'api',
+  });
+  const run = (args) => {
+    calls.push(args);
+    return args[0] === 'list-sessions' ? row : '';
+  };
+  askToWrapUp('repo-one--api', { run, wait: () => {}, now: () => 101 });
+  askToPause('repo-one--api', { run, wait: () => {}, now: () => 102 });
+  resume('repo-one--api', { run, wait: () => {} });
+  const sentTargets = calls.filter((args) => args[0] === 'send-keys').map((args) => args[2]);
+  assert.ok(sentTargets.every((target) => target === `${PREFIX}repo-one--api`));
+  assert.ok(calls.some((args) => args.includes('@handraise-wrapup') && args.at(-1) === '101'));
+  assert.ok(calls.some((args) => args.includes('@handraise-pause') && args.at(-1) === '102'));
+  assert.ok(calls.some((args) => args.includes('-u') && args.includes('@handraise-pause')));
 });
 
 // ── what proves a request is still live ──────────────────────────────────────
@@ -131,6 +167,27 @@ test('a session nobody is waiting on is working', () => {
   const [session] = snapshot({ root, list }).sessions;
   assert.equal(session.status, 'working');
   assert.equal(session.permission, null);
+});
+
+test('a cooperative pause only becomes paused after a real proof', () => {
+  const now = 1_000;
+  const session = { pauseAskedAt: 950, activity: 980 };
+  assert.equal(pauseState(session, null, now).pausing, true);
+  assert.equal(pauseState(session, { state: 'waiting', since: 960 }, now).paused, true);
+  assert.equal(pauseState({ ...session, activity: 900 }, null, now).proof, 'pane-quiet');
+});
+
+test('an agent exit is surfaced ahead of stale attention', () => {
+  const root = mkdtempSync(join(tmpdir(), 'handraise-'));
+  const now = Date.now() / 1000;
+  mkdirSync(join(root, 'attention'), { recursive: true });
+  writeFileSync(join(root, 'attention', 'broken.json'), JSON.stringify({
+    session: 'broken', slug: 'broken', state: 'waiting', reason: 'old wait', since: now - 20,
+  }));
+  const list = () => sessions(() => FIELDS(`${PREFIX}broken`, { error: '127' }));
+  const [session] = snapshot({ root, now, list }).sessions;
+  assert.equal(session.status, 'error');
+  assert.equal(session.reason, 'Agent exited with code 127');
 });
 
 // ── what turns into HTML ─────────────────────────────────────────────────────

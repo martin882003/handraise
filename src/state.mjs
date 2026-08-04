@@ -97,7 +97,7 @@ export function readPermissions(root = stateDir(), now = Date.now() / 1000) {
 }
 
 /** Answers only the request that is still pending; an old button never decides the next one. */
-export function resolvePermission(root, key, id, behavior) {
+export function resolvePermission(root, key, id, behavior, message = '') {
   if (!/^[A-Za-z0-9._-]+$/.test(key)) throw new Error('invalid permission key');
   if (!['allow', 'deny'].includes(behavior)) throw new Error(`invalid decision: '${behavior}'`);
   const directory = join(root, 'permissions');
@@ -108,9 +108,10 @@ export function resolvePermission(root, key, id, behavior) {
   if (request.proc && !procAlive(request.proc)) throw new Error('that session is no longer waiting for this permission');
   const responsePath = join(directory, `${key}.response.json`);
   const tmp = `${responsePath}.tmp-${process.pid}`;
-  writeFileSync(tmp, JSON.stringify({ id, behavior, decidedAt: Date.now() / 1000 }));
+  const cleanMessage = String(message || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 500);
+  writeFileSync(tmp, JSON.stringify({ id, behavior, message: cleanMessage, decidedAt: Date.now() / 1000 }));
   renameSync(tmp, responsePath);
-  return { id, behavior };
+  return { id, behavior, message: cleanMessage };
 }
 
 /**
@@ -134,6 +135,15 @@ export function wrapupState(session, attention, now = Date.now() / 1000, quietFo
   return { seconds, wrapping: !proof, proof, noAnswer: !proof && seconds >= WRAPUP_NO_ANSWER };
 }
 
+export function pauseState(session, attention, now = Date.now() / 1000, quietFor = 45) {
+  if (!session?.pauseAskedAt) return null;
+  const seconds = Math.max(0, Math.round(now - session.pauseAskedAt));
+  const spoke = attention?.state === 'waiting' && (attention.since ?? 0) >= session.pauseAskedAt;
+  const quiet = session.activity ? now - session.activity >= quietFor : false;
+  const proof = spoke ? 'told-us' : quiet ? 'pane-quiet' : null;
+  return { seconds, pausing: !proof, paused: Boolean(proof), proof };
+}
+
 /**
  * Everything the page needs, in one object.
  *
@@ -151,7 +161,11 @@ export function snapshot({ root = stateDir(), now = Date.now() / 1000, list = tm
     const mine = attention.find((a) => a.slug === session.controlSlug || a.slug === session.slug) ?? null;
     const permission = permissions.find((p) => p.slug === session.controlSlug || p.slug === session.slug) ?? null;
     const wrapup = wrapupState(session, mine, now);
-    const status = permission ? 'blocked'
+    const pause = pauseState(session, mine, now);
+    const status = session.error ? 'error'
+      : permission ? 'blocked'
+      : pause?.paused ? 'paused'
+      : pause?.pausing ? 'pausing'
       : wrapup?.wrapping ? 'wrapping'
       : mine?.state === 'waiting' ? 'waiting'
       : 'working';
@@ -163,24 +177,28 @@ export function snapshot({ root = stateDir(), now = Date.now() / 1000, list = tm
       repoId: session.repoId,
       component: session.component,
       front: session.front,
+      runId: session.runId,
+      role: session.role,
+      startedAt: session.startedAt,
       attached: session.attached,
       error: session.error,
       status,
-      reason: permission ? permission.summary : mine?.reason ?? null,
+      reason: session.error ? `Agent exited with code ${session.error}` : permission ? permission.summary : mine?.reason ?? null,
       waitingSeconds: permission?.waitingSeconds ?? mine?.waitingSeconds ?? 0,
       activity: paneActivity(session, now),
       wrapup,
+      pause,
       permission,
       controllable: true,
     };
   });
 
-  const order = { blocked: 0, waiting: 1, wrapping: 2, working: 3 };
+  const order = { error: 0, blocked: 1, waiting: 2, pausing: 3, paused: 4, wrapping: 5, working: 6 };
   sessions.sort((a, b) => (order[a.status] - order[b.status]) || b.waitingSeconds - a.waitingSeconds);
 
   return {
     sessions,
-    needsYou: sessions.filter((s) => s.status === 'blocked' || s.status === 'waiting').length,
+    needsYou: sessions.filter((s) => ['error', 'blocked', 'waiting'].includes(s.status)).length,
     at: new Date(now * 1000).toISOString(),
   };
 }

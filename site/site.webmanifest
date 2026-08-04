@@ -1,0 +1,16 @@
+{
+  "name": "Handraise",
+  "short_name": "Handraise",
+  "description": "Understand the system. Design the work. Run the agents.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "assets/handraise-mark.png",
+      "sizes": "260x260",
+      "type": "image/png"
+    }
+  ]
+}

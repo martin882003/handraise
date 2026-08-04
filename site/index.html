@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0c0f">
+  <meta name="description" content="Handraise understands your codebase, designs the work, and safely runs Claude Code and Codex agents from one local-first workbench.">
+  <link rel="canonical" href="https://handraise.pages.dev/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Handraise — Understand the system. Design the work. Run the agents.">
+  <meta property="og:description" content="The local-first workbench that turns repositories and product intent into an evidence-backed work model, then safely runs coding agents against it.">
+  <meta property="og:image" content="https://handraise.pages.dev/assets/handraise-social.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Handraise — Understand the system. Design the work. Run the agents.">
+  <meta property="og:url" content="https://handraise.pages.dev/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Handraise — Design the work before agents run">
+  <meta name="twitter:description" content="Understand the system. Design the work. Run the agents.">
+  <meta name="twitter:image" content="https://handraise.pages.dev/assets/handraise-social.png">
+  <link rel="icon" href="assets/handraise-mark.png" type="image/png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+  <title>Handraise — Understand. Design. Run.</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="chapter-rail" aria-label="Page chapters" data-chapter-rail>
+    <a href="#top" data-chapter="top"><i></i><span>Intro</span></a>
+    <a href="#why" data-chapter="why"><i></i><span>Why</span></a>
+    <a href="#workflow" data-chapter="workflow"><i></i><span>Workflow</span></a>
+    <a href="#safety" data-chapter="safety"><i></i><span>Trust</span></a>
+    <a href="#install" data-chapter="install"><i></i><span>Install</span></a>
+  </nav>
+
+  <header class="site-header" data-header>
+    <nav class="nav shell" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Handraise home">
+        <img src="assets/handraise-mark.png" width="36" height="36" alt="">
+        <span><strong>Handraise</strong><small>Agentic software workbench</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation" data-nav-toggle>
+        <span></span><span></span>
+      </button>
+      <div class="nav-links" id="nav-links" data-nav-links>
+        <a href="#why">Why Handraise</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#safety">Local-first</a>
+        <a href="#install">Install</a>
+      </div>
+      <div class="nav-actions">
+        <a class="text-link" href="https://github.com/martin882003/handraise" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        <a class="button button-small" data-product-hunt href="https://www.producthunt.com/posts/handraise" target="_blank" rel="noreferrer"><span class="product-hunt-label">Product Hunt</span> <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero shell" id="top">
+      <canvas class="hero-field" data-particle-field aria-hidden="true"></canvas>
+      <div class="hero-copy reveal">
+        <a class="launch-pill" data-product-hunt href="https://www.producthunt.com/posts/handraise" target="_blank" rel="noreferrer">
+          <i aria-hidden="true"></i><span>Launching on Product Hunt</span><b>Join the launch →</b>
+        </a>
+        <p class="eyebrow">Open source · local-first · Claude Code + Codex</p>
+        <h1 aria-label="Understand the system. Design the work. Run the agents.">
+          <span class="hero-line"><span>Understand the system.</span></span>
+          <span class="hero-line signal-line"><span>Design the work.</span></span>
+          <span class="hero-line"><span>Run the agents.</span></span>
+        </h1>
+        <p class="hero-lede">Coding agents write code fast. Handraise helps you decide <em>what work should exist</em>—from an evidence-backed map of your system to safe, dependency-aware agent runs.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#install">Get Handraise <span aria-hidden="true">↓</span></a>
+          <a class="button button-secondary" href="#workflow">See how it works <span aria-hidden="true">→</span></a>
+        </div>
+        <ul class="hero-proof" aria-label="Product guarantees">
+          <li><i aria-hidden="true">✓</i> Runs on your machine</li>
+          <li><i aria-hidden="true">✓</i> Human-reviewed plans</li>
+          <li><i aria-hidden="true">✓</i> Your CLI credentials stay put</li>
+        </ul>
+      </div>
+
+      <div class="hero-product reveal" role="img" aria-label="Handraise work model showing repository components, fronts, dependencies and active agent runs">
+        <div class="product-orbit orbit-one" aria-hidden="true"></div>
+        <div class="product-orbit orbit-two" aria-hidden="true"></div>
+        <div class="app-window" aria-hidden="true" inert>
+          <div class="window-bar">
+            <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="window-address"><i></i> localhost:4177 / repository</span>
+            <span class="window-live"><i></i> local</span>
+          </div>
+          <div class="app-topbar">
+            <span class="mini-brand"><img src="assets/handraise-mark.png" alt="" width="27" height="27"><b>Handraise</b></span>
+            <div class="app-nav" aria-hidden="true"><span>Fleet</span><span>Understand</span><span class="active">Design</span><span>Run</span></div>
+            <span class="repo-live"><i></i> all clear</span>
+          </div>
+          <div class="journey-rail">
+            <div><small>Understand the system. Design the work. Run the agents.</small><b>payments-platform</b></div>
+            <ol>
+              <li class="done"><i>✓</i><span><b>Understand</b><small>current snapshot</small></span></li>
+              <li class="active"><i>2</i><span><b>Design</b><small>4 components · 6 fronts</small></span></li>
+              <li><i>3</i><span><b>Run</b><small>2 fronts ready</small></span></li>
+            </ol>
+          </div>
+          <div class="app-content">
+            <div class="content-heading"><span><small>Accepted work model</small><b>Goals → components → fronts → runs</b></span><span class="view-toggle"><i class="active">Graph</i><i>List</i></span></div>
+            <div class="work-graph">
+              <article class="graph-card graph-runtime">
+                <header><span><i></i><b>Runtime control</b></span><small>2 fronts</small></header>
+                <button><span><b>Safe remote access</b><small>goal: remote-control</small></span><em class="ready">ready</em></button>
+                <button><span><b>Session lifecycle</b><small>1 dependency</small></span><em class="working">running</em></button>
+              </article>
+              <article class="graph-card graph-planning">
+                <header><span><i></i><b>Repository planning</b></span><small>2 fronts</small></header>
+                <button><span><b>Component discovery</b><small>evidence-backed</small></span><em class="done">done</em></button>
+                <button><span><b>Plan publication</b><small>blocked by architecture</small></span><em>blocked</em></button>
+              </article>
+              <article class="graph-card graph-intel">
+                <header><span><i></i><b>Repository intelligence</b></span><small>2 fronts</small></header>
+                <button><span><b>Semantic system map</b><small>Graphify optional</small></span><em class="done">done</em></button>
+                <button><span><b>Architecture drift</b><small>derived findings</small></span><em class="ready">ready</em></button>
+              </article>
+              <svg class="graph-lines" viewBox="0 0 800 260" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M255 80 C320 80 310 80 375 80"/><path d="M525 130 C600 130 575 130 650 130"/><path d="M255 180 C330 180 300 180 375 180"/>
+              </svg>
+            </div>
+            <div class="app-status-row">
+              <span><i class="truth accepted"></i><small>Accepted</small> 4 components + 6 fronts</span>
+              <span><i class="truth derived"></i><small>Derived</small> critical path: map → architecture → publish</span>
+              <button>Review ready work →</button>
+            </div>
+          </div>
+        </div>
+        <div class="attention-toast" aria-hidden="true" inert><i></i><span><small>CLAUDE CODE · NEEDS YOU</small><b>Permission requested in runtime-control</b></span><button>Review</button></div>
+      </div>
+    </section>
+
+    <section class="trust-band" aria-label="Handraise integrations">
+      <div class="shell trust-content">
+        <p>Works with the tools already on your machine</p>
+        <div><span><b>◈</b> Claude Code</span><span><b>⌁</b> Codex</span><span><b>▣</b> tmux</span><span><b>⑂</b> Git worktrees</span><span><b>◇</b> Graphify <small>optional</small></span></div>
+      </div>
+    </section>
+
+    <section class="problem section shell" id="why">
+      <div class="section-heading reveal">
+        <p class="eyebrow">The coordination problem</p>
+        <h2>More agents don't fix a bad plan.</h2>
+        <p>Worktrees prevent file collisions. Terminals show activity. Neither tells you whether the system was understood, the boundaries make sense, or the work can be verified.</p>
+      </div>
+      <div class="problem-grid">
+        <article class="problem-card reveal">
+          <span class="card-number">01</span>
+          <div class="problem-icon folders" aria-hidden="true"><i></i><i></i><i></i></div>
+          <h3>Folders are not responsibilities</h3>
+          <p>A directory tree is evidence—not a product architecture. Handraise proposes durable components around outcomes, interfaces and ownership.</p>
+        </article>
+        <article class="problem-card reveal">
+          <span class="card-number">02</span>
+          <div class="problem-icon branches" aria-hidden="true"><i></i><i></i><i></i></div>
+          <h3>Parallel isn't automatically useful</h3>
+          <p>Fronts expose dependencies, affected components, acceptance criteria and a critical path before a worktree is allocated.</p>
+        </article>
+        <article class="problem-card reveal">
+          <span class="card-number">03</span>
+          <div class="problem-icon claims" aria-hidden="true"><i>?</i><i>✓</i></div>
+          <h3>Activity is not an outcome</h3>
+          <p>Agent claims, process state and reviewed evidence remain separate. Completion requires the accepted contract and observable checks.</p>
+        </article>
+      </div>
+      <div class="thesis reveal">
+        <span>repository + product intent</span><i>→</i><span>system map</span><i>→</i><span>work model</span><i>→</i><span>agent runs</span><i>→</i><span>verified outcomes</span><i class="loop">↺</i>
+      </div>
+    </section>
+
+    <section class="kinetic" id="principle" data-kinetic aria-labelledby="kinetic-title">
+      <div class="kinetic-grid" aria-hidden="true"></div>
+      <div class="kinetic-orb" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="kinetic-track line-one" aria-hidden="true"><span>UNDERSTAND THE SYSTEM · UNDERSTAND THE SYSTEM ·</span></div>
+      <div class="kinetic-track line-two" aria-hidden="true"><span>DESIGN THE WORK · DESIGN THE WORK · DESIGN THE WORK ·</span></div>
+      <div class="kinetic-track line-three" aria-hidden="true"><span>RUN THE AGENTS · RUN THE AGENTS · RUN THE AGENTS ·</span></div>
+      <div class="kinetic-message shell reveal">
+        <p class="eyebrow">The order is the product</p>
+        <h2 id="kinetic-title">Model the work<br><em>before agents run.</em></h2>
+        <p>Speed compounds good architecture—and bad architecture. Handraise puts understanding and design back in front of execution.</p>
+      </div>
+    </section>
+
+    <section class="workflow section" id="workflow">
+      <div class="shell">
+        <div class="section-heading centered reveal">
+          <p class="eyebrow">One evidence-first loop</p>
+          <h2>From codebase to coordinated work.</h2>
+          <p>Handraise keeps observation, human intent, generated proposals, accepted contracts and runtime evidence visibly distinct.</p>
+        </div>
+        <div class="workflow-demo reveal">
+          <div class="workflow-tabs" role="tablist" aria-label="Handraise workflow">
+            <button id="tab-understand" role="tab" aria-selected="true" aria-controls="panel-understand" tabindex="0" data-demo-tab="understand"><i>1</i><span><b>Understand</b><small>Map the real system</small></span></button>
+            <button id="tab-design" role="tab" aria-selected="false" aria-controls="panel-design" tabindex="-1" data-demo-tab="design"><i>2</i><span><b>Design</b><small>Model useful work</small></span></button>
+            <button id="tab-run" role="tab" aria-selected="false" aria-controls="panel-run" tabindex="-1" data-demo-tab="run"><i>3</i><span><b>Run</b><small>Operate with evidence</small></span></button>
+          </div>
+          <div class="workflow-panels">
+            <article id="panel-understand" role="tabpanel" aria-labelledby="tab-understand" data-demo-panel="understand">
+              <div class="panel-copy"><span class="step-label">01 · Understand the system</span><h3>See what exists—and how sure we are.</h3><p>Choose an exact, read-only scope. Explore responsibilities, dependencies, entry points, interfaces, tests and data flows with traceable evidence.</p><ul><li>Built-in local analyzer always available</li><li>Optional Graphify semantic graph</li><li>Coverage, provenance and uncertainty visible</li><li>Snapshot comparison and drift</li></ul></div>
+              <div class="panel-visual map-visual" aria-label="System map example">
+                <div class="map-toolbar"><span>Responsibility lens</span><small>127 entities · current</small></div>
+                <div class="map-canvas">
+                  <div class="map-node node-a"><i></i><small>RESPONSIBILITY</small><b>Authentication boundary</b><span>18 entities · 26 relations</span></div>
+                  <div class="map-node node-b"><i></i><small>DEPLOYABLE</small><b>Local control server</b><span>31 entities · 48 relations</span></div>
+                  <div class="map-node node-c"><i></i><small>INTERFACE</small><b>Agent lifecycle hooks</b><span>12 entities · 15 relations</span></div>
+                  <svg viewBox="0 0 640 300" preserveAspectRatio="none" aria-hidden="true"><path d="M190 90C270 90 250 140 330 140"/><path d="M390 160C460 160 450 230 520 230"/></svg>
+                </div>
+                <div class="map-detail"><span><b>Why this grouping exists</b><small>6 evidence references</small></span><em>medium uncertainty</em></div>
+              </div>
+            </article>
+            <article id="panel-design" role="tabpanel" aria-labelledby="tab-design" data-demo-panel="design" hidden>
+              <div class="panel-copy"><span class="step-label">02 · Design the work</span><h3>Turn product intent into a reviewable plan.</h3><p>Compare component alternatives, resolve boundary questions, then slice goals into fronts with one accountable lead and explicit verification.</p><ul><li>Edit, split, merge, lock or regenerate</li><li>Dependency DAG, ready set and critical path</li><li>Complete human-readable contracts</li><li>Atomic publication after exact diff review</li></ul></div>
+              <div class="panel-visual design-visual" aria-label="Component and front planning example">
+                <div class="design-top"><span><small>ALTERNATIVE</small><b>Responsibility-first architecture</b></span><em>Gate C · pass</em></div>
+                <div class="component-stack">
+                  <article><span><i></i><b>Runtime &amp; Worktree Control</b><small>processes · Git safety · lifecycle</small></span><strong>3 fronts</strong></article>
+                  <article class="selected"><span><i></i><b>Repository Planning</b><small>components · fronts · publication</small></span><strong>4 fronts</strong></article>
+                  <article><span><i></i><b>Repository Intelligence</b><small>snapshots · evidence · drift</small></span><strong>3 fronts</strong></article>
+                </div>
+                <div class="critical-path"><small>DERIVED CRITICAL PATH</small><span><b>system-map</b><i>→</i><b>component-design</b><i>→</i><b>publish-plan</b></span></div>
+              </div>
+            </article>
+            <article id="panel-run" role="tabpanel" aria-labelledby="tab-run" data-demo-panel="run" hidden>
+              <div class="panel-copy"><span class="step-label">03 · Run the agents</span><h3>Start only work that is actually ready.</h3><p>Review exact context, ownership, dependencies, agent capability and Git risk. Then run Claude Code or Codex in a safe worktree and keep outcome evidence attached.</p><ul><li>One-click attention and permission handling</li><li>Isolated worktrees with Git risk signals</li><li>Live terminal one level down</li><li>Discoveries and drift feed the next cycle</li></ul></div>
+              <div class="panel-visual run-visual" aria-label="Agent run example">
+                <div class="run-summary"><span><small>FLEET VERDICT</small><b>2 running · 1 needs you</b></span><em><i></i> live</em></div>
+                <article class="session needs"><header><span><i></i><b>auth-boundary</b></span><em>needs you · 18s</em></header><p>Claude Code requests permission to run the migration check.</p><footer><span>repository-planning · isolated</span><span class="visual-action">Review permission</span></footer></article>
+                <article class="session"><header><span><i></i><b>system-map</b></span><em>working</em></header><p>Codex is validating normalized evidence contracts.</p><footer><span>repository-intelligence · 4m</span><small>verified 3 / 5</small></footer></article>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="truth-section section shell">
+      <div class="truth-copy reveal">
+        <p class="eyebrow">No synthetic certainty</p>
+        <h2>Five truths.<br>Never silently mixed.</h2>
+        <p>A model suggestion isn't architecture. A running process isn't a completed outcome. Handraise makes every state transition explicit and reviewable.</p>
+      </div>
+      <div class="truth-list reveal">
+        <article><i class="observed"></i><span><b>Observed</b><small>Facts and inferences from code, docs, tests and history.</small></span><em>evidence</em></article>
+        <article><i class="declared"></i><span><b>Declared</b><small>Users, outcomes, constraints and priorities supplied by people.</small></span><em>intent</em></article>
+        <article><i class="proposed"></i><span><b>Proposed</b><small>Generated maps and plans that remain private drafts.</small></span><em>review</em></article>
+        <article><i class="accepted"></i><span><b>Accepted</b><small>Human-readable contracts explicitly published to the repository.</small></span><em>contract</em></article>
+        <article><i class="execution"></i><span><b>Execution</b><small>Processes, worktrees, checks, discoveries and outcomes at runtime.</small></span><em>runtime</em></article>
+      </div>
+    </section>
+
+    <section class="safety section" id="safety">
+      <div class="shell safety-grid">
+        <div class="safety-visual reveal" aria-hidden="true">
+          <div class="local-ring ring-outer"><span>internet</span></div>
+          <div class="local-ring ring-middle"><span>explicit boundary</span></div>
+          <div class="local-core"><img src="assets/handraise-mark.png" width="66" height="66" alt=""><b>Your machine</b><small>repos · tmux · CLI auth · private state</small></div>
+          <span class="boundary-note note-source"><i></i> source stays local by default</span>
+          <span class="boundary-note note-auth"><i></i> credentials stay with the CLI</span>
+        </div>
+        <div class="safety-copy reveal">
+          <p class="eyebrow">Local-first is a trust boundary</p>
+          <h2>Your codebase isn't a prompt by default.</h2>
+          <p>Handraise runs on your machine, reuses the Claude Code and Codex accounts already authenticated there, and shows the exact source boundary before model-assisted planning.</p>
+          <div class="safety-points">
+            <article><i>01</i><span><b>Read-only before review</b><small>Analysis is bounded, cancellable and cannot mutate the target repository.</small></span></article>
+            <article><i>02</i><span><b>No copied provider credentials</b><small>Authentication remains owned by the first-party agent CLIs.</small></span></article>
+            <article><i>03</i><span><b>Explicit remote access</b><small>Loopback is implicit; LAN and Internet clients pair with revocable one-time access.</small></span></article>
+            <article><i>04</i><span><b>Human acceptance boundary</b><small>Generated proposals cannot become repository state without exact reviewed publication.</small></span></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="capabilities section shell">
+      <div class="section-heading reveal">
+        <p class="eyebrow">The infrastructure underneath the idea</p>
+        <h2>A serious local control plane.</h2>
+        <p>The planning thesis is useful because the operational layer is already there when the work is ready.</p>
+      </div>
+      <div class="capability-grid">
+        <article class="reveal"><span>⌁</span><h3>Fleet command center</h3><p>See every repository, session, attention request and Git risk without hunting through terminals.</p></article>
+        <article class="reveal"><span>⑂</span><h3>Safe worktrees</h3><p>Isolate fronts and surface dirty, ahead, behind, branch mismatch and local-only commit risk.</p></article>
+        <article class="reveal"><span>◎</span><h3>Permission control</h3><p>Review typed Claude Code and Codex attention from the browser; open the terminal only when needed.</p></article>
+        <article class="reveal"><span>↗</span><h3>Remote clients</h3><p>Pair another browser over private network or an explicit HTTPS tunnel with revocable access.</p></article>
+        <article class="reveal"><span>◇</span><h3>Honest degradation</h3><p>Missing Graphify, models or language coverage stays visible. Manual planning always remains available.</p></article>
+        <article class="reveal"><span>↺</span><h3>Outcome learning</h3><p>Turn reviewed checks and architecture drift into new proposals—never silent contract mutations.</p></article>
+      </div>
+    </section>
+
+    <section class="install section shell" id="install">
+      <div class="install-card reveal">
+        <div class="install-copy">
+          <p class="eyebrow">Open source · install from source</p>
+          <h2>Raise your hand.<br>Take back the plan.</h2>
+          <p>Requires Node 20+, tmux and Python 3. Your existing Claude Code or Codex login is reused locally.</p>
+          <div class="install-actions"><a class="button button-primary" href="https://github.com/martin882003/handraise" target="_blank" rel="noreferrer">View on GitHub <span aria-hidden="true">↗</span></a><a class="button button-secondary" data-product-hunt href="https://www.producthunt.com/posts/handraise" target="_blank" rel="noreferrer">Support on Product Hunt <span aria-hidden="true">↗</span></a></div>
+        </div>
+        <div class="install-terminal">
+          <header><span aria-hidden="true"><i></i><i></i><i></i></span><b>Terminal</b><button type="button" data-copy-install aria-label="Copy installation commands"><span>Copy</span></button></header>
+          <pre><code data-install-code><span class="prompt">$</span> git clone https://github.com/martin882003/handraise.git
+<span class="prompt">$</span> cd handraise &amp;&amp; npm install &amp;&amp; npm run build
+<span class="prompt">$</span> npm link
+<span class="prompt">$</span> handraise hooks install
+<span class="prompt">$</span> handraise repo add ~/code/my-project
+<span class="prompt">$</span> handraise serve</code></pre>
+          <footer><i></i><span>Open http://127.0.0.1:4177</span></footer>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq section shell">
+      <div class="section-heading reveal"><p class="eyebrow">Questions worth asking</p><h2>Before you hand over the keyboard.</h2></div>
+      <div class="faq-list reveal">
+        <details><summary>Is Handraise another coding agent?<i>+</i></summary><p>No. It orchestrates the Claude Code and Codex CLIs already on your machine. Handraise models the system and the work, then controls agent sessions against accepted plans.</p></details>
+        <details><summary>Does it upload my repository?<i>+</i></summary><p>No. Repository analysis is local and read-only by default. Model-assisted planning shows the exact selected snippets, byte count, provider and destination before host-only consent.</p></details>
+        <details><summary>Do I need Graphify?<i>+</i></summary><p>No. The built-in structural analyzer is always available. A compatible existing Graphify installation can enrich the local system map, but Handraise never installs it automatically.</p></details>
+        <details><summary>What happens when I close the browser?<i>+</i></summary><p>Your controlled agents keep running in tmux. Reopen Handraise or attach from a terminal. Private drafts and job history can be resumed with revision and staleness checks.</p></details>
+        <details><summary>Can I use it from another device?<i>+</i></summary><p>Yes. Pair a browser or installed PWA over your private network, tailnet or an explicit HTTPS tunnel. Remote access is revocable; direct localhost access remains an implicit non-revocable server-host client.</p></details>
+      </div>
+    </section>
+
+    <section class="final-cta section shell reveal">
+      <img src="assets/handraise-mark.png" width="74" height="74" alt="">
+      <p class="eyebrow">The agents can wait one second.</p>
+      <h2>Model the work first.</h2>
+      <p>Understand the system. Design the work. Then run the agents with a plan worth executing.</p>
+      <div><a class="button button-primary" href="#install">Install Handraise <span aria-hidden="true">↓</span></a><a class="button button-secondary" data-product-hunt href="https://www.producthunt.com/posts/handraise" target="_blank" rel="noreferrer">Join the Product Hunt launch <span aria-hidden="true">↗</span></a></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-content">
+      <a class="brand" href="#top"><img src="assets/handraise-mark.png" width="34" height="34" alt=""><span><strong>Handraise</strong><small>Understand · Design · Run</small></span></a>
+      <p>Open-source local infrastructure for people building software with agents.</p>
+      <nav aria-label="Footer navigation"><a href="https://github.com/martin882003/handraise" target="_blank" rel="noreferrer">GitHub</a><a data-product-hunt href="https://www.producthunt.com/posts/handraise" target="_blank" rel="noreferrer">Product Hunt</a><a href="#safety">Security</a><a href="#install">Install</a></nav>
+      <small>© <span data-year>2026</span> Handraise. Built locally.</small>
+    </div>
+  </footer>
+</body>
+</html>

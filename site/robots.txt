@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://handraise.pages.dev/sitemap.xml

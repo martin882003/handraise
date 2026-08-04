@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" role="img" aria-labelledby="title">
+  <title id="title">Handraise</title>
+  <defs>
+    <clipPath id="round"><rect width="260" height="260" rx="58"/></clipPath>
+    <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+      <path d="M16 0H0V16" fill="none" stroke="#343638" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="260" height="260" fill="#0c0c0c"/>
+    <g fill="#fbfbf3">
+      <path d="M128 48h16v16h-16zM96 64h64v16H96zM80 80h80v32H80zM80 112h80v16H80zM176 112h16v16h-16zM80 128h112v16H80zM80 144h96v32H80zM80 176h80v16H80zM96 192h48v16H96z"/>
+    </g>
+    <rect width="260" height="260" fill="url(#grid)"/>
+  </g>
+  <rect x=".5" y=".5" width="259" height="259" rx="57.5" fill="none" stroke="#f4f3ed" stroke-opacity=".22"/>
+</svg>

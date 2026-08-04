@@ -1,0 +1,2621 @@
+{
+  "schemaVersion": 1,
+  "benchmarkVersion": "1.0.0",
+  "corpusVersion": "1.0.0",
+  "protocolVersion": "blind-owner-review-v1",
+  "generatedAt": "2026-08-04T00:11:34.087Z",
+  "status": "blocked",
+  "promotionAllowed": false,
+  "versions": {
+    "package": "0.1.0",
+    "benchmarkEngine": "1.0.0",
+    "analysisSchema": 1,
+    "systemMapSchema": 1,
+    "systemMapAlgorithm": "1.0.0",
+    "componentDesignSchema": 1,
+    "frontDesignSchema": 1,
+    "workContractSchema": 2,
+    "analyzer": "benchmark-semantic-fixture@1.0.0",
+    "model": "none",
+    "prompt": "deterministic-v1",
+    "corpusDigest": "10b58392d7209e496405b9b8b999a3b6af38642d98e99af5e738f888fcbf64eb",
+    "rubricDigest": "14139df1faa6fd75711901c125b4c7fcff00510f9e10839819a6e9f4b7aa7f5a"
+  },
+  "gate": {
+    "status": "blocked",
+    "promotionAllowed": false,
+    "automatedPass": true,
+    "humanStatus": "blocked",
+    "checks": [
+      {
+        "gate": "hard",
+        "metric": "safetyFailures",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "hard",
+        "metric": "evidenceFailures",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "hard",
+        "metric": "mutationFailures",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "hard",
+        "metric": "schemaFailures",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "hard",
+        "metric": "securityFailures",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "hard",
+        "metric": "hardDependencyCycles",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "understanding",
+        "metric": "evidenceResolution",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 1,
+        "pass": true
+      },
+      {
+        "gate": "understanding",
+        "metric": "requiredFactCoverage",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 0.8,
+        "pass": true
+      },
+      {
+        "gate": "understanding",
+        "metric": "expectedDriftRecall",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 0.75,
+        "pass": true
+      },
+      {
+        "gate": "componentDesign",
+        "metric": "responsibilityCoverage",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 0.8,
+        "pass": true
+      },
+      {
+        "gate": "componentDesign",
+        "metric": "bestAlternativeAgreement",
+        "measured": 0.97,
+        "operator": ">=",
+        "threshold": 0.6,
+        "pass": true
+      },
+      {
+        "gate": "componentDesign",
+        "metric": "entityOverlapRatio",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0.2,
+        "pass": true
+      },
+      {
+        "gate": "frontDesign",
+        "metric": "completeFrontRatio",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 1,
+        "pass": true
+      },
+      {
+        "gate": "frontDesign",
+        "metric": "goalLinkRatio",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 1,
+        "pass": true
+      },
+      {
+        "gate": "frontDesign",
+        "metric": "ownershipCollisions",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      },
+      {
+        "gate": "execution",
+        "metric": "validContractRatio",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 1,
+        "pass": true
+      },
+      {
+        "gate": "execution",
+        "metric": "acceptanceVerificationRatio",
+        "measured": 1,
+        "operator": ">=",
+        "threshold": 1,
+        "pass": true
+      },
+      {
+        "gate": "performance",
+        "metric": "budgetFailures",
+        "measured": 0,
+        "operator": "<=",
+        "threshold": 0,
+        "pass": true
+      }
+    ]
+  },
+  "human": {
+    "status": "blocked",
+    "reviewCount": 0,
+    "missingCases": [
+      "small-js-service",
+      "polyglot-platform",
+      "monorepo-commerce",
+      "service-collection-logistics",
+      "library-rendering",
+      "legacy-backoffice",
+      "sparse-doc-worker",
+      "misleading-layer-folders",
+      "dirty-feature-branch",
+      "adversarial-repository"
+    ],
+    "usefulStartingPointRatio": 0,
+    "medians": {
+      "evidenceIntegrity": null,
+      "boundaryUsefulness": null,
+      "frontUsefulness": null,
+      "uncertaintyHonesty": null
+    }
+  },
+  "candidates": {
+    "baseline": {
+      "summary": {
+        "cases": 10,
+        "hard": {
+          "safetyFailures": 0,
+          "evidenceFailures": 0,
+          "mutationFailures": 0,
+          "schemaFailures": 0,
+          "securityFailures": 0,
+          "hardDependencyCycles": 0
+        },
+        "understanding": {
+          "evidenceResolution": 1,
+          "requiredFactCoverage": 1,
+          "expectedDriftRecall": 1
+        },
+        "componentDesign": {
+          "responsibilityCoverage": 1,
+          "bestAlternativeAgreement": 1,
+          "entityOverlapRatio": 0
+        },
+        "frontDesign": {
+          "completeFrontRatio": 1,
+          "goalLinkRatio": 1,
+          "ownershipCollisions": 0
+        },
+        "execution": {
+          "validContractRatio": 1,
+          "acceptanceVerificationRatio": 1
+        },
+        "performance": {
+          "budgetFailures": 0,
+          "failures": []
+        }
+      },
+      "cases": [
+        {
+          "id": "small-js-service",
+          "class": "small",
+          "scale": "default",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 3,
+            "frontCount": 5,
+            "componentAlternativeCount": 1,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 3,
+            "coveredFacts": 3,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "boundary-crossing"
+            ],
+            "observedFindingKinds": [
+              "boundary-crossing",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "domain-plus-runtime",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 3,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 7,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 1,
+            "recalled": 1,
+            "recall": 1,
+            "findingCount": 13
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "b717283319096726844b510c6c7c17bdf06cbed84876d2255723e2f2a2d2f4ec",
+            "repeatedDigest": "b717283319096726844b510c6c7c17bdf06cbed84876d2255723e2f2a2d2f4ec"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 57.541,
+            "mapMs": 5.977,
+            "componentMs": 13.236,
+            "frontMs": 15.619,
+            "reconciliationMs": 8.699,
+            "resultBytes": 2539,
+            "heapDeltaBytes": 2546576
+          },
+          "semantic": {
+            "manifestDigest": "28f64e92334875b746d02a96e79168303d51817da1b6a6a6faa12dcc07d7579d",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "e5a23499c23fdcabdda9666c50096616860b766384aa527a90a93cb2371eac47",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "bf3730c83183cd3376602dc1b5ef1f4ac3cc242c9138ac1bee77dba6b604d188",
+            "contractDigest": "c657fd7be86d7e9802910b007d4ac88fc0ed94f93f1a756441444d21774c246a"
+          },
+          "changedMapDigest": "f7166e79d82c370e8eed373b877c8d9274ed416df582e5943b78b8e876fe383a"
+        },
+        {
+          "id": "polyglot-platform",
+          "class": "polyglot",
+          "scale": "default",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 2,
+            "frontCount": 4,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-interface",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-dependency",
+              "new-interface",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-interface-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "experience-catalog",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 5,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 8
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "8eefbf1d44756137fe48451eb9bafe4a21efeb226d0cc5ee945ae9e557145181",
+            "repeatedDigest": "8eefbf1d44756137fe48451eb9bafe4a21efeb226d0cc5ee945ae9e557145181"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 16.969,
+            "mapMs": 1.572,
+            "componentMs": 3.918,
+            "frontMs": 4.577,
+            "reconciliationMs": 4.801,
+            "resultBytes": 2556,
+            "heapDeltaBytes": 553408
+          },
+          "semantic": {
+            "manifestDigest": "67b3713c0917b34bc90185d0d41952371ce0082330314c592f76b0faed4493cd",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "fb37404e1e6ec79c342b25645db854b198c3fc40426630296d4c83a4d0d25d6f",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "308f51c321ec191867c5f91ee056d773ac39388376b9b946bd33c9a4c0690573",
+            "contractDigest": "bd1418010cf8688655391d40c475c3c3e788f7d9bf2dd0f29988332cc72d055f"
+          },
+          "changedMapDigest": "b8c5122c8b32387c64d71573136b50d6f7fb083920f1aad3682fb5c248b89220"
+        },
+        {
+          "id": "monorepo-commerce",
+          "class": "monorepo",
+          "scale": "large",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 5,
+            "frontCount": 7,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 7,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 4,
+            "coveredFacts": 4,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-deployable",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-deployable",
+              "new-dependency",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-deployable-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "domains-and-apps",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 5,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 11,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 11
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "99a1f30b4bc19c1261ddf26880810b03fe672111150d54b409f3ce6d85ba76db",
+            "repeatedDigest": "99a1f30b4bc19c1261ddf26880810b03fe672111150d54b409f3ce6d85ba76db"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 20.17,
+            "mapMs": 0.787,
+            "componentMs": 5.312,
+            "frontMs": 7.732,
+            "reconciliationMs": 3.697,
+            "resultBytes": 2556,
+            "heapDeltaBytes": 237848
+          },
+          "semantic": {
+            "manifestDigest": "f378922f0690ce9c455284e9dc3431939674281b15273aab1a656e0f0504897b",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "7a7cf935b6ec6dfba60e4ea0582b91d45465c8369e35d655f7d3d16d242cfbe5",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "20ee161d00133f8ad541574af609bfa2614e9186a57a03a6a8053477ac380fdb",
+            "contractDigest": "ee6527efebbdae307f547dbad8bb87d5549a33893f6ebb8803b1e717b0f2b899"
+          },
+          "changedMapDigest": "3944e548d8359d90a257bb25242264713ed0970ec5a85646c085aca3e334a287"
+        },
+        {
+          "id": "service-collection-logistics",
+          "class": "services",
+          "scale": "large",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 5,
+            "frontCount": 7,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 5,
+            "coveredFacts": 5,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "removed-deployable",
+              "removed-dependency"
+            ],
+            "observedFindingKinds": [
+              "removed-deployable",
+              "removed-dependency",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory",
+              "removed-deployable-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "service-aligned",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 5,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 11,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 15
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "56e25ad090288d28941131249fd32f79981a3d5904a088ba7dee51119c9ec1df",
+            "repeatedDigest": "56e25ad090288d28941131249fd32f79981a3d5904a088ba7dee51119c9ec1df"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 17.792,
+            "mapMs": 0.774,
+            "componentMs": 5.377,
+            "frontMs": 6.3,
+            "reconciliationMs": 2.849,
+            "resultBytes": 2591,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "31211909ddddb6f8bfb6b7a2f323bae5442060b9675549f0ebcc83ce31d7cbc5",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "afcfbeb9cca1ef20d5ee4edc8d08cf83965be04e0f54b0ab9a433cc82e0808df",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "baece62d35921be7638a68031e57821953ace51338a02245dafe780ffc24659a",
+            "contractDigest": "fe6c916590c72fcf5f18dc5eae4886a801f6739adfa74031454b8bcee63aa00a"
+          },
+          "changedMapDigest": "eb38aca5ad84cd24a206b7d4669917f86b44aa379c97520edaaa9b5a5ade3ed6"
+        },
+        {
+          "id": "library-rendering",
+          "class": "library",
+          "scale": "default",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 4,
+            "frontCount": 6,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 4,
+            "coveredFacts": 4,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-interface",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-dependency",
+              "new-interface",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-interface-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "api-parser-renderer-core",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 4,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 9,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 10
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "1eb674fb7dbba1bbc37e226a27c24432ebdab8a2cd4604a72505fa851e9c9614",
+            "repeatedDigest": "1eb674fb7dbba1bbc37e226a27c24432ebdab8a2cd4604a72505fa851e9c9614"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 17.693,
+            "mapMs": 0.529,
+            "componentMs": 4.566,
+            "frontMs": 7.564,
+            "reconciliationMs": 3.053,
+            "resultBytes": 2562,
+            "heapDeltaBytes": 566256
+          },
+          "semantic": {
+            "manifestDigest": "39494ed4b67f343c92b577f5530abf9383b52412148d6a67226bbc7cbe8070ab",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "011dd95422bc2aca8f1f03b272220ef2923f5bdf9bb1e58ede4473d65b8befb2",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "54c865a253c3e4a310bc4c73e111692937053dd3c923b89f7538af4a63c971cf",
+            "contractDigest": "2a61a6cb327bcde1f52d1b50286267a25f72073bc49210fe0d62df3d60fffabf"
+          },
+          "changedMapDigest": "182f84ad8fc6940b8e1e92f76a622e18e438408f6d6c1151ecf42d20f88f4bdc"
+        },
+        {
+          "id": "legacy-backoffice",
+          "class": "legacy",
+          "scale": "large",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 3,
+            "frontCount": 5,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 6,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 4,
+            "coveredFacts": 4,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "removed-data",
+              "removed-dependency"
+            ],
+            "observedFindingKinds": [
+              "removed-data",
+              "removed-dependency",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory",
+              "removed-data-store-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "monolith-plus-emerging",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 3,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 7,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 17
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "4474e501bba49c22673369dba9de5913453aff6f938a64703219a1ecad5ac6ac",
+            "repeatedDigest": "4474e501bba49c22673369dba9de5913453aff6f938a64703219a1ecad5ac6ac"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 12.732,
+            "mapMs": 0.544,
+            "componentMs": 4.144,
+            "frontMs": 4.38,
+            "reconciliationMs": 2.088,
+            "resultBytes": 2573,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "6ea034c46e78b22f5badb0f13036507fc8deac3451ef24586e84b1920fa6b627",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "192519045294732d95f18a69178bca7746a8b3bbd069581aef889f5cf6868825",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "732d1b6d4c9719217607dc27cfa0273051b4d6653fb1d92c0ca0ddc92af2c45b",
+            "contractDigest": "721330f263726071df0fd8a7c7874c467a417d44635970b2e0530012d4912de1"
+          },
+          "changedMapDigest": "f45709150c320679bb8793ba4b6e3bb5841622acdd9e2ff1bb14716d4c253d7a"
+        },
+        {
+          "id": "sparse-doc-worker",
+          "class": "sparse-doc",
+          "scale": "default",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 2,
+            "frontCount": 4,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "analyzer-change"
+            ],
+            "observedFindingKinds": [
+              "stale-analysis-snapshot",
+              "analyzer-change"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "analyzer"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "worker-reliability",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 5,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 1,
+            "recalled": 1,
+            "recall": 1,
+            "findingCount": 5
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "8a3cbe4cbe2196a8080d6b6738538035f5a41be04d1d4ed4a73b7a1a7fa8471d",
+            "repeatedDigest": "8a3cbe4cbe2196a8080d6b6738538035f5a41be04d1d4ed4a73b7a1a7fa8471d"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 8.654,
+            "mapMs": 0.432,
+            "componentMs": 1.947,
+            "frontMs": 2.625,
+            "reconciliationMs": 2.252,
+            "resultBytes": 2459,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "e342edb3831ba6ad3860230b3ff84ef6e1f950af33fe5ba1a4cc71bef357c146",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "cbd24cfddafadfdcc6ab42b8cfa24fe5fe7fbc8cb1bdf23b9a1f1532b73590b8",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "cbc4aaadba2c787810c12446862842acc1d1a5f7cb70f2261286705c2ef16ca1",
+            "contractDigest": "ff5ae1e4c49c2f2d43c464142749ca7ea07c6e99e238bae315f2157648cc01d8"
+          },
+          "changedMapDigest": "c19946d2a444139677ff71b196698bf6979a0352a8a3fd390ff1b12f2d5b44fb"
+        },
+        {
+          "id": "misleading-layer-folders",
+          "class": "misleading-layout",
+          "scale": "default",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 2,
+            "frontCount": 4,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 8,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "boundary-crossing"
+            ],
+            "observedFindingKinds": [
+              "boundary-crossing",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "domain-verticals",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 5,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 1,
+            "recalled": 1,
+            "recall": 1,
+            "findingCount": 11
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "a9789d38eaca3aab2e7d67542b9ff27ac57ba481d3fc0c6b4f955d483d2562b0",
+            "repeatedDigest": "a9789d38eaca3aab2e7d67542b9ff27ac57ba481d3fc0c6b4f955d483d2562b0"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 12.94,
+            "mapMs": 0.927,
+            "componentMs": 3.263,
+            "frontMs": 3.476,
+            "reconciliationMs": 3.458,
+            "resultBytes": 2525,
+            "heapDeltaBytes": 461256
+          },
+          "semantic": {
+            "manifestDigest": "f4858c68320f3d6837e47637c99c143a3da375d20c143fac17208d833541d440",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "2f848b4d2b1cdfbe38b6928bb00c33b73eab0728ab9b2f55d204ea796d8ec5d4",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "633472634b6be0f13852fc0f32a6e1f71601636460f7816ff2857e4cee90de5f",
+            "contractDigest": "6113490473df32b18b6d1ac00398c012b274d1aafcba2cd6a52333122304cb9b"
+          },
+          "changedMapDigest": "fa7ecf41e4fb5e27aeac181e2425e63945bee1c9d4afc9ce4a4fe8ae2231cdef"
+        },
+        {
+          "id": "dirty-feature-branch",
+          "class": "dirty-tree",
+          "scale": "default",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 2,
+            "frontCount": 4,
+            "componentAlternativeCount": 1,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 3,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [],
+            "observedFindingKinds": [
+              "changed-evidence",
+              "stale-analysis-snapshot"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "core-feature",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 5,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 0,
+            "recalled": 0,
+            "recall": 1,
+            "findingCount": 9
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "0ffdbf3a0c55262a2a1eb3f93213900bc47f603400035a73d105fbbd1ebb0a97",
+            "repeatedDigest": "0ffdbf3a0c55262a2a1eb3f93213900bc47f603400035a73d105fbbd1ebb0a97"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 7.515,
+            "mapMs": 0.355,
+            "componentMs": 1.057,
+            "frontMs": 3.038,
+            "reconciliationMs": 1.613,
+            "resultBytes": 2446,
+            "heapDeltaBytes": 5331376
+          },
+          "semantic": {
+            "manifestDigest": "f4e4ecfe690cb568244d59f06bdeff9adbc31e6bc76fa48c2b82edd55e1800a5",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "44bf6c95750140f678ce755c1ff2afaad0ed9f061fbba89ac83d5889cb6c230c",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "c77d47aae999bac460db2f84b99d0b314948bd426d1a139be1f8d90c34d5017b",
+            "contractDigest": "a08d83a28d3922974bf4adb7dfc2bd87cfbb5e8f7b1d21e0fa2df0e82677218a"
+          },
+          "changedMapDigest": "c6a37fa0373cfd8534a943eabd808519ec0c10c75441cff94f93f0b4e31b2c8d"
+        },
+        {
+          "id": "adversarial-repository",
+          "class": "adversarial",
+          "scale": "large",
+          "candidate": "baseline",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "outcome-slices",
+            "componentCount": 2,
+            "frontCount": 4,
+            "componentAlternativeCount": 1,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 3,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 1,
+            "coveredFacts": 1,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-interface",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-dependency",
+              "new-interface",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-interface-hypothesis"
+            ],
+            "exclusionsDeclared": 4,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "safe-plus-doc-context",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 5,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 8
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "560bcce1e9091a2a9e7f941dd95359d25847bb364b50acaabf0e0b1dae9763e3",
+            "repeatedDigest": "560bcce1e9091a2a9e7f941dd95359d25847bb364b50acaabf0e0b1dae9763e3"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 8.287,
+            "mapMs": 0.367,
+            "componentMs": 1.15,
+            "frontMs": 3.399,
+            "reconciliationMs": 1.936,
+            "resultBytes": 2558,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "158d372fdd9ad86d693f4ffb4df765c65a208a04fa3cf39a0346060c100fc643",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "9b809cb70b0bf5d8241bca261a3cfb075579f79174cd0849a0dbc45699b1ad26",
+            "frontStrategy": "outcome-slices",
+            "frontDigest": "98f508ac93a51bfc3a6593d14efe2ca3718cd32989198dbc4ffe9cbc7d7d84c6",
+            "contractDigest": "a810769974ffccf95dd3b373d5dc96153c12a16b7a94781917fc96336d2e702d"
+          },
+          "changedMapDigest": "348380c51573addd35b8de65ce0240aa2d3b14408f1873d0e1d3299151e5779e"
+        }
+      ]
+    },
+    "current": {
+      "summary": {
+        "cases": 10,
+        "hard": {
+          "safetyFailures": 0,
+          "evidenceFailures": 0,
+          "mutationFailures": 0,
+          "schemaFailures": 0,
+          "securityFailures": 0,
+          "hardDependencyCycles": 0
+        },
+        "understanding": {
+          "evidenceResolution": 1,
+          "requiredFactCoverage": 1,
+          "expectedDriftRecall": 1
+        },
+        "componentDesign": {
+          "responsibilityCoverage": 1,
+          "bestAlternativeAgreement": 0.97,
+          "entityOverlapRatio": 0
+        },
+        "frontDesign": {
+          "completeFrontRatio": 1,
+          "goalLinkRatio": 1,
+          "ownershipCollisions": 0
+        },
+        "execution": {
+          "validContractRatio": 1,
+          "acceptanceVerificationRatio": 1
+        },
+        "performance": {
+          "budgetFailures": 0,
+          "failures": []
+        }
+      },
+      "cases": [
+        {
+          "id": "small-js-service",
+          "class": "small",
+          "scale": "default",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 3,
+            "frontCount": 3,
+            "componentAlternativeCount": 1,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 3,
+            "coveredFacts": 3,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "boundary-crossing"
+            ],
+            "observedFindingKinds": [
+              "boundary-crossing",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "domain-plus-runtime",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 3,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 1,
+            "recalled": 1,
+            "recall": 1,
+            "findingCount": 9
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "c1d7e46c2ad2566f1012565b6917e9db79f078d0616d5ac0f9c2e3ec7e6f96b5",
+            "repeatedDigest": "c1d7e46c2ad2566f1012565b6917e9db79f078d0616d5ac0f9c2e3ec7e6f96b5"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 9.887,
+            "mapMs": 0.421,
+            "componentMs": 1.646,
+            "frontMs": 3.317,
+            "reconciliationMs": 3.353,
+            "resultBytes": 2493,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "28f64e92334875b746d02a96e79168303d51817da1b6a6a6faa12dcc07d7579d",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "e5a23499c23fdcabdda9666c50096616860b766384aa527a90a93cb2371eac47",
+            "frontStrategy": "risk-first",
+            "frontDigest": "9048a86c06f97520daad9d3903539371907032e8b580c1b5b76dbea0d131a57f",
+            "contractDigest": "5ef269defd52927ef91676a9ca725fa07f99723f26969cbb3fcc3e31c1968e7a"
+          },
+          "changedMapDigest": "f7166e79d82c370e8eed373b877c8d9274ed416df582e5943b78b8e876fe383a"
+        },
+        {
+          "id": "polyglot-platform",
+          "class": "polyglot",
+          "scale": "default",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 2,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-interface",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-dependency",
+              "new-interface",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-interface-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "experience-catalog",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 7
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "0f70b5ea9ae312be9ee49d6db591cb795ef5158e9111ac19c488384dee65554c",
+            "repeatedDigest": "0f70b5ea9ae312be9ee49d6db591cb795ef5158e9111ac19c488384dee65554c"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 9.03,
+            "mapMs": 0.754,
+            "componentMs": 2.472,
+            "frontMs": 2.887,
+            "reconciliationMs": 1.786,
+            "resultBytes": 2513,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "67b3713c0917b34bc90185d0d41952371ce0082330314c592f76b0faed4493cd",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "fb37404e1e6ec79c342b25645db854b198c3fc40426630296d4c83a4d0d25d6f",
+            "frontStrategy": "risk-first",
+            "frontDigest": "18df4d3f60b6b7539c07167f84c62a27ea3cae7d68a58bde38558e232abe1458",
+            "contractDigest": "64b66cf4dceca6409101bb6aaec79231d602cf815961f1afc6004167903b0e0b"
+          },
+          "changedMapDigest": "b8c5122c8b32387c64d71573136b50d6f7fb083920f1aad3682fb5c248b89220"
+        },
+        {
+          "id": "monorepo-commerce",
+          "class": "monorepo",
+          "scale": "large",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 5,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 7,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 4,
+            "coveredFacts": 4,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-deployable",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-deployable",
+              "new-dependency",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-deployable-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "domains-and-apps",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 5,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 7
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "c37218e24e7b4a8a58aa7243dd7cfef54329626e4bcc48adbd838048da2a0d49",
+            "repeatedDigest": "c37218e24e7b4a8a58aa7243dd7cfef54329626e4bcc48adbd838048da2a0d49"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 13.803,
+            "mapMs": 0.601,
+            "componentMs": 4.186,
+            "frontMs": 4.683,
+            "reconciliationMs": 2.642,
+            "resultBytes": 2547,
+            "heapDeltaBytes": 2189632
+          },
+          "semantic": {
+            "manifestDigest": "f378922f0690ce9c455284e9dc3431939674281b15273aab1a656e0f0504897b",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "7a7cf935b6ec6dfba60e4ea0582b91d45465c8369e35d655f7d3d16d242cfbe5",
+            "frontStrategy": "risk-first",
+            "frontDigest": "4b25970d8fae8b20875fd6a4c6d6bc21a54e6493975644778affae39535de3d4",
+            "contractDigest": "3ee42b689baad07362161bd7008d1342d184750bc90c51479131db476f2da9e0"
+          },
+          "changedMapDigest": "3944e548d8359d90a257bb25242264713ed0970ec5a85646c085aca3e334a287"
+        },
+        {
+          "id": "service-collection-logistics",
+          "class": "services",
+          "scale": "large",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 5,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 5,
+            "coveredFacts": 5,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "removed-deployable",
+              "removed-dependency"
+            ],
+            "observedFindingKinds": [
+              "removed-deployable",
+              "removed-dependency",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory",
+              "removed-deployable-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "service-aligned",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 5,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 11
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "a60dbafce6002055ecffc673ab486112b8487ae4e9e03b2c0b2fd1bff37fa49b",
+            "repeatedDigest": "a60dbafce6002055ecffc673ab486112b8487ae4e9e03b2c0b2fd1bff37fa49b"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 14.613,
+            "mapMs": 0.549,
+            "componentMs": 3.77,
+            "frontMs": 6.684,
+            "reconciliationMs": 1.855,
+            "resultBytes": 2588,
+            "heapDeltaBytes": 1299112
+          },
+          "semantic": {
+            "manifestDigest": "31211909ddddb6f8bfb6b7a2f323bae5442060b9675549f0ebcc83ce31d7cbc5",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "afcfbeb9cca1ef20d5ee4edc8d08cf83965be04e0f54b0ab9a433cc82e0808df",
+            "frontStrategy": "risk-first",
+            "frontDigest": "d514f8ae3f6c08593ec8f7428b568cd517a9ee322466f4cb97dfcf6a4a63b62f",
+            "contractDigest": "697af3cb1b418c8d61bb9c97abb1201311b609cc3c3dab76e88e310502fa7d34"
+          },
+          "changedMapDigest": "eb38aca5ad84cd24a206b7d4669917f86b44aa379c97520edaaa9b5a5ade3ed6"
+        },
+        {
+          "id": "library-rendering",
+          "class": "library",
+          "scale": "default",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 4,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 4,
+            "coveredFacts": 4,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-interface",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-dependency",
+              "new-interface",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-interface-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "api-parser-renderer-core",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 4,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 7
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "f3d006321a6ef3c8583bf1b840fb72b758839705bd3f82dd0f4d5e7569c0cc2d",
+            "repeatedDigest": "f3d006321a6ef3c8583bf1b840fb72b758839705bd3f82dd0f4d5e7569c0cc2d"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 15.643,
+            "mapMs": 0.785,
+            "componentMs": 4.368,
+            "frontMs": 4.641,
+            "reconciliationMs": 3.586,
+            "resultBytes": 2520,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "39494ed4b67f343c92b577f5530abf9383b52412148d6a67226bbc7cbe8070ab",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "011dd95422bc2aca8f1f03b272220ef2923f5bdf9bb1e58ede4473d65b8befb2",
+            "frontStrategy": "risk-first",
+            "frontDigest": "2a818aa6e8529b006de9d1601dd9ce4a018a14ab0e4f60d3c7dc12423669706a",
+            "contractDigest": "ab9c75c1905965b0a9300727b24236c3f84ba81b4a42334d3061431f7b3f81a5"
+          },
+          "changedMapDigest": "182f84ad8fc6940b8e1e92f76a622e18e438408f6d6c1151ecf42d20f88f4bdc"
+        },
+        {
+          "id": "legacy-backoffice",
+          "class": "legacy",
+          "scale": "large",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 3,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 6,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 4,
+            "coveredFacts": 4,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "removed-data",
+              "removed-dependency"
+            ],
+            "observedFindingKinds": [
+              "removed-data",
+              "removed-dependency",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory",
+              "removed-data-store-hypothesis"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "monolith-plus-emerging",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 3,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 13
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "808e91bce81223c66e46cd09273fc7d1977eb16e9fc89c903f66b6aa895fe8ea",
+            "repeatedDigest": "808e91bce81223c66e46cd09273fc7d1977eb16e9fc89c903f66b6aa895fe8ea"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 11.817,
+            "mapMs": 0.486,
+            "componentMs": 2.682,
+            "frontMs": 4.093,
+            "reconciliationMs": 2.679,
+            "resultBytes": 2571,
+            "heapDeltaBytes": 7512600
+          },
+          "semantic": {
+            "manifestDigest": "6ea034c46e78b22f5badb0f13036507fc8deac3451ef24586e84b1920fa6b627",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "192519045294732d95f18a69178bca7746a8b3bbd069581aef889f5cf6868825",
+            "frontStrategy": "risk-first",
+            "frontDigest": "70c40e78adc1d0a237bb2e68cd9603400e62efef5b0752eef72127ff180c8ee4",
+            "contractDigest": "21b38fab2d88fe0b92d03ad26cd096b68c17b4c078268dfda2fbd094addb2631"
+          },
+          "changedMapDigest": "f45709150c320679bb8793ba4b6e3bb5841622acdd9e2ff1bb14716d4c253d7a"
+        },
+        {
+          "id": "sparse-doc-worker",
+          "class": "sparse-doc",
+          "scale": "default",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "hybrid",
+            "frontStrategy": "risk-first",
+            "componentCount": 4,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 5,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "analyzer-change"
+            ],
+            "observedFindingKinds": [
+              "stale-analysis-snapshot",
+              "analyzer-change"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "analyzer"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 0.7,
+            "closestReferenceAlternative": "worker-reliability",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 4,
+            "diagnosticCodes": []
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": [
+              "FRONT_TOO_BROAD_TO_VERIFY"
+            ]
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 1,
+            "recalled": 1,
+            "recall": 1,
+            "findingCount": 4
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "6b3e2b39e1e7b33349207b9cc0cd9ca2963c2fe2c917405d70f48f322fb1ed16",
+            "repeatedDigest": "6b3e2b39e1e7b33349207b9cc0cd9ca2963c2fe2c917405d70f48f322fb1ed16"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 10.004,
+            "mapMs": 0.39,
+            "componentMs": 1.927,
+            "frontMs": 4.176,
+            "reconciliationMs": 1.634,
+            "resultBytes": 2410,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "e342edb3831ba6ad3860230b3ff84ef6e1f950af33fe5ba1a4cc71bef357c146",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "hybrid",
+            "componentDigest": "32bb5c43bd23461aeab079fb544466c8564e495b71bb08f153957bbc35618d73",
+            "frontStrategy": "risk-first",
+            "frontDigest": "6746e0a32234924f83378711bde951807a989033bd65341278126dd58674ca89",
+            "contractDigest": "3f3154fef491ebb2a141e80f702bb086e3a4582ccee2df605cf15881bfc15270"
+          },
+          "changedMapDigest": "c19946d2a444139677ff71b196698bf6979a0352a8a3fd390ff1b12f2d5b44fb"
+        },
+        {
+          "id": "misleading-layer-folders",
+          "class": "misleading-layout",
+          "scale": "default",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 2,
+            "frontCount": 3,
+            "componentAlternativeCount": 2,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 8,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "boundary-crossing"
+            ],
+            "observedFindingKinds": [
+              "boundary-crossing",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "stale-evidence",
+              "stale-territory"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "domain-verticals",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 1,
+            "recalled": 1,
+            "recall": 1,
+            "findingCount": 10
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "86b019caaccf1421a1c86f54c65aeb8ba1b2c899d1cae4822ed7a9a87c099fab",
+            "repeatedDigest": "86b019caaccf1421a1c86f54c65aeb8ba1b2c899d1cae4822ed7a9a87c099fab"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 11.601,
+            "mapMs": 0.692,
+            "componentMs": 3.858,
+            "frontMs": 3.099,
+            "reconciliationMs": 2.482,
+            "resultBytes": 2512,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "f4858c68320f3d6837e47637c99c143a3da375d20c143fac17208d833541d440",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "2f848b4d2b1cdfbe38b6928bb00c33b73eab0728ab9b2f55d204ea796d8ec5d4",
+            "frontStrategy": "risk-first",
+            "frontDigest": "798449132f4b47f509708adfd90fcf5b92c1e9d49442d9f8042e16086e237224",
+            "contractDigest": "5e44d00d8d624a50b9ee5fee058ea7c57049359656ada5924caea083c5b82555"
+          },
+          "changedMapDigest": "fa7ecf41e4fb5e27aeac181e2425e63945bee1c9d4afc9ce4a4fe8ae2231cdef"
+        },
+        {
+          "id": "dirty-feature-branch",
+          "class": "dirty-tree",
+          "scale": "default",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 2,
+            "frontCount": 3,
+            "componentAlternativeCount": 1,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 3,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 2,
+            "coveredFacts": 2,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [],
+            "observedFindingKinds": [
+              "changed-evidence",
+              "stale-analysis-snapshot"
+            ],
+            "exclusionsDeclared": 0,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "core-feature",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 0,
+            "recalled": 0,
+            "recall": 1,
+            "findingCount": 7
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "db35479829aceb9c0f3df621c70665c63016d04078d770c5337c401a4f1edb56",
+            "repeatedDigest": "db35479829aceb9c0f3df621c70665c63016d04078d770c5337c401a4f1edb56"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 6.462,
+            "mapMs": 0.346,
+            "componentMs": 1.235,
+            "frontMs": 2.742,
+            "reconciliationMs": 1.18,
+            "resultBytes": 2403,
+            "heapDeltaBytes": 0
+          },
+          "semantic": {
+            "manifestDigest": "f4e4ecfe690cb568244d59f06bdeff9adbc31e6bc76fa48c2b82edd55e1800a5",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "44bf6c95750140f678ce755c1ff2afaad0ed9f061fbba89ac83d5889cb6c230c",
+            "frontStrategy": "risk-first",
+            "frontDigest": "836e05d4be8580585579e3896f90b90a32eac45ee58b88af49ee6ca60721000c",
+            "contractDigest": "3fd9dabb2b60cc3857fa5b34c83e11b7a8125b823c031d21b857efeff0893acf"
+          },
+          "changedMapDigest": "c6a37fa0373cfd8534a943eabd808519ec0c10c75441cff94f93f0b4e31b2c8d"
+        },
+        {
+          "id": "adversarial-repository",
+          "class": "adversarial",
+          "scale": "large",
+          "candidate": "current",
+          "selected": {
+            "componentStrategy": "responsibility",
+            "frontStrategy": "risk-first",
+            "componentCount": 2,
+            "frontCount": 3,
+            "componentAlternativeCount": 1,
+            "frontAlternativeCount": 2
+          },
+          "understanding": {
+            "evidenceResolution": 1,
+            "evidenceReferences": 3,
+            "unresolvedReferences": [],
+            "requiredFactCoverage": 1,
+            "requiredFacts": 1,
+            "coveredFacts": 1,
+            "expectedDriftRecall": 1,
+            "expectedFindingKinds": [
+              "new-interface",
+              "new-dependency"
+            ],
+            "observedFindingKinds": [
+              "new-dependency",
+              "new-interface",
+              "orphan-responsibility",
+              "stale-analysis-snapshot",
+              "new-interface-hypothesis"
+            ],
+            "exclusionsDeclared": 4,
+            "snapshotStatus": "complete",
+            "truncated": false,
+            "comparisonCauses": [
+              "code",
+              "evidence",
+              "inference"
+            ]
+          },
+          "componentDesign": {
+            "responsibilityCoverage": 1,
+            "bestAlternativeAgreement": 1,
+            "closestReferenceAlternative": "safe-plus-doc-context",
+            "entityOverlapRatio": 0,
+            "overlappingEntities": 0,
+            "dependencyCycles": 0,
+            "unstableBoundaries": 2,
+            "diagnosticCodes": [
+              "DUPLICATE_RESPONSIBILITY"
+            ]
+          },
+          "frontDesign": {
+            "completeFrontRatio": 1,
+            "goalLinkRatio": 1,
+            "ownershipCollisions": 0,
+            "coordinatedOverlaps": 3,
+            "hardDependencyCycles": 0,
+            "readyFronts": 1,
+            "diagnosticCodes": []
+          },
+          "execution": {
+            "validContractRatio": 1,
+            "acceptanceVerificationRatio": 1,
+            "portfolioValid": true,
+            "validationCodes": [],
+            "roundTripFailures": []
+          },
+          "reconciliation": {
+            "expected": 2,
+            "recalled": 2,
+            "recall": 1,
+            "findingCount": 7
+          },
+          "stability": {
+            "deterministic": true,
+            "firstDigest": "6a4f471a860c9d7ee5c856996ad4dbdae8d6463c22c34f87e0fc80e5d003108a",
+            "repeatedDigest": "6a4f471a860c9d7ee5c856996ad4dbdae8d6463c22c34f87e0fc80e5d003108a"
+          },
+          "security": {
+            "selectedDangerousPaths": [],
+            "leakedDangerousPaths": [],
+            "injectionMarkerPresent": false,
+            "failures": 0
+          },
+          "hard": {
+            "safetyFailures": 0,
+            "evidenceFailures": 0,
+            "mutationFailures": 0,
+            "schemaFailures": 0,
+            "securityFailures": 0,
+            "hardDependencyCycles": 0
+          },
+          "performance": {
+            "totalMs": 7.851,
+            "mapMs": 0.244,
+            "componentMs": 1.114,
+            "frontMs": 3.944,
+            "reconciliationMs": 1.428,
+            "resultBytes": 2529,
+            "heapDeltaBytes": 4736304
+          },
+          "semantic": {
+            "manifestDigest": "158d372fdd9ad86d693f4ffb4df765c65a208a04fa3cf39a0346060c100fc643",
+            "analyzer": "benchmark-semantic-fixture@1.0.0",
+            "componentStrategy": "responsibility",
+            "componentDigest": "9b809cb70b0bf5d8241bca261a3cfb075579f79174cd0849a0dbc45699b1ad26",
+            "frontStrategy": "risk-first",
+            "frontDigest": "a4b41795d913d992e4d87d6a9cfe286aa98102296635442d185ebbc7bfaccd0a",
+            "contractDigest": "2cac62976146b3ed50286cda06005d0d76996cd246a5f46dddfa0b01d39b9221"
+          },
+          "changedMapDigest": "348380c51573addd35b8de65ce0240aa2d3b14408f1873d0e1d3299151e5779e"
+        }
+      ]
+    }
+  },
+  "regressions": {
+    "categories": {
+      "code-evidence": 0,
+      "analyzer-output": 0,
+      "inference": 0,
+      "inference-ranking": 10,
+      "formatting-only": 0,
+      "unchanged": 0
+    },
+    "cases": [
+      {
+        "caseId": "small-js-service",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "polyglot-platform",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "monorepo-commerce",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "service-collection-logistics",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "library-rendering",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "legacy-backoffice",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "sparse-doc-worker",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "misleading-layer-folders",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "dirty-feature-branch",
+        "category": "inference-ranking"
+      },
+      {
+        "caseId": "adversarial-repository",
+        "category": "inference-ranking"
+      }
+    ]
+  },
+  "reviews": [],
+  "privacy": {
+    "sourceCaptured": false,
+    "reviewerPseudonymsHashed": true,
+    "modelConfidenceUsedAsHumanRating": false
+  },
+  "limitations": [
+    "The checked-in corpus is synthetic and cannot substitute for independent repository-owner review.",
+    "Automated structural agreement accepts multiple owner-authored decompositions but does not prove responsibility usefulness.",
+    "Performance measurements depend on the host and are evaluated against fixture-class budgets.",
+    "Human Gate C is blocked: 10 case(s) lack the required independent blind review."
+  ]
+}

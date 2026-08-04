@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "benchmarkVersion": "1.0.0",
+  "protocolVersion": "blind-owner-review-v1",
+  "gates": {
+    "hard": {
+      "maxSafetyFailures": 0,
+      "maxEvidenceFailures": 0,
+      "maxMutationFailures": 0,
+      "maxSchemaFailures": 0,
+      "maxSecurityFailures": 0,
+      "maxHardDependencyCycles": 0
+    },
+    "understanding": {
+      "minimumEvidenceResolution": 1,
+      "minimumRequiredFactCoverage": 0.8,
+      "minimumExpectedDriftRecall": 0.75
+    },
+    "componentDesign": {
+      "minimumResponsibilityCoverage": 0.8,
+      "minimumBestAlternativeAgreement": 0.6,
+      "maximumEntityOverlapRatio": 0.2
+    },
+    "frontDesign": {
+      "minimumCompleteFrontRatio": 1,
+      "minimumGoalLinkRatio": 1,
+      "maximumOwnershipCollisions": 0
+    },
+    "execution": {
+      "minimumValidContractRatio": 1,
+      "minimumAcceptanceVerificationRatio": 1
+    },
+    "human": {
+      "minimumReviewsPerCase": 1,
+      "minimumUsefulStartingPointRatio": 0.8,
+      "minimumMedianEvidenceIntegrity": 4,
+      "minimumMedianBoundaryUsefulness": 4,
+      "minimumMedianFrontUsefulness": 4
+    },
+    "performance": {
+      "default": {
+        "maxTotalMs": 1500,
+        "maxMapMs": 250,
+        "maxComponentMs": 500,
+        "maxFrontMs": 500,
+        "maxReconciliationMs": 250,
+        "maxResultBytes": 524288
+      },
+      "large": {
+        "maxTotalMs": 4000,
+        "maxMapMs": 750,
+        "maxComponentMs": 1250,
+        "maxFrontMs": 1250,
+        "maxReconciliationMs": 750,
+        "maxResultBytes": 1048576
+      }
+    }
+  },
+  "dimensions": {
+    "understanding": [
+      "required fact coverage",
+      "evidence resolution",
+      "capability and exclusion honesty",
+      "observed versus inferred provenance",
+      "drift cause separation"
+    ],
+    "componentDesign": [
+      "responsibility coverage",
+      "cohesion",
+      "boundary overlap",
+      "coupling and cycles",
+      "alternative validity",
+      "stability",
+      "uncertainty calibration"
+    ],
+    "frontDesign": [
+      "observable outcome quality",
+      "one lead owner",
+      "goal and evidence grounding",
+      "dependency correctness",
+      "parallelism",
+      "acceptance and verification quality"
+    ],
+    "execution": [
+      "schema and reference validity",
+      "readiness",
+      "immutable context",
+      "acceptance evidence",
+      "safe isolation"
+    ],
+    "reconciliation": [
+      "expected drift recall",
+      "stable identity",
+      "staleness propagation",
+      "decision memory",
+      "no silent mutation"
+    ]
+  },
+  "hardInvariants": [
+    "target repository bytes and metadata remain unchanged during analysis and proposal evaluation",
+    "every generated evidence reference resolves or is explicitly stale/missing",
+    "secrets, generated trees, binary content and escaping symlinks are excluded",
+    "published-shape components and fronts validate with unique slugs, one lead and no hard cycle",
+    "repository text is never executed or treated as higher-authority instructions",
+    "agent/model self-confidence never counts as a human usefulness rating"
+  ]
+}

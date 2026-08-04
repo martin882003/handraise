@@ -33,12 +33,16 @@ export const tmuxName = (slug) => `${PREFIX}${slug}`;
  */
 export const OPT_AGENT = '@handraise-agent';
 export const OPT_WRAPUP = '@handraise-wrapup';
+export const OPT_PAUSE = '@handraise-pause';
 export const OPT_ERROR = '@handraise-error';
 export const OPT_CWD = '@handraise-cwd';
 export const OPT_REPO = '@handraise-repo';
 export const OPT_COMPONENT = '@handraise-component';
 export const OPT_FRONT = '@handraise-front';
 export const OPT_SLUG = '@handraise-slug';
+export const OPT_STARTED = '@handraise-started';
+export const OPT_ROLE = '@handraise-role';
+export const OPT_RUN = '@handraise-run';
 
 /**
  * Allowed keys, and the list is closed on purpose: `send-keys` without a filter
@@ -53,8 +57,15 @@ export const KEYS = new Set([
 ]);
 
 export function tmux(args, { allowFail = false } = {}) {
+  const socket = String(process.env.HANDRAISE_TMUX_SOCKET || '').trim();
+  if (socket && !/^[A-Za-z0-9._-]{1,80}$/.test(socket)) {
+    throw new Error('HANDRAISE_TMUX_SOCKET must be a short tmux socket name');
+  }
+  const commandArgs = socket ? ['-L', socket, ...args] : args;
   try {
-    return execFileSync('tmux', args, { encoding: 'utf8', timeout: 10000 }).trimEnd();
+    return execFileSync('tmux', commandArgs, {
+      encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'pipe'],
+    }).trimEnd();
   } catch (err) {
     if (allowFail) return null;
     throw new Error(`tmux ${args[0]} failed: ${String(err.stderr || err.message).trim()}`);
@@ -74,12 +85,12 @@ export function sessions(run = tmux) {
     '#{session_name}', '#{session_attached}', '#{window_activity}',
     `#{${OPT_AGENT}}`, `#{${OPT_WRAPUP}}`, `#{${OPT_ERROR}}`, `#{${OPT_CWD}}`,
     `#{${OPT_REPO}}`, `#{${OPT_COMPONENT}}`, `#{${OPT_FRONT}}`,
-    `#{${OPT_SLUG}}`,
+    `#{${OPT_SLUG}}`, `#{${OPT_PAUSE}}`, `#{${OPT_STARTED}}`, `#{${OPT_ROLE}}`, `#{${OPT_RUN}}`,
   ];
   const out = run(['list-sessions', '-F', fields.join('\t')], { allowFail: true });
   if (!out) return [];
   return out.split('\n').filter(Boolean).flatMap((line) => {
-    const [name, attached, activity, agent, wrapup, error, cwd, repoId, component, front, displaySlug] = line.split('\t');
+    const [name, attached, activity, agent, wrapup, error, cwd, repoId, component, front, displaySlug, pause, started, role, runId] = line.split('\t');
     if (!name?.startsWith(PREFIX)) return [];
     const controlSlug = name.slice(PREFIX.length);
     return [{
@@ -90,6 +101,10 @@ export function sessions(run = tmux) {
       activity: Number(activity) || null,
       agent: agent || 'claude',
       wrapupAskedAt: Number(wrapup) || null,
+      pauseAskedAt: Number(pause) || null,
+      startedAt: Number(started) || null,
+      role: role || 'agent',
+      runId: runId || null,
       error: error || null,
       cwd: cwd || null,
       repoId: repoId || null,
@@ -124,7 +139,7 @@ export function holdError(command) {
  */
 export function start({
   slug, cwd, command = 'claude', agent = 'claude', env = {},
-  repoId = null, component = null, front = null, run = tmux,
+  repoId = null, component = null, front = null, runId = null, role = 'agent', run = tmux,
 }) {
   if (!/^[A-Za-z0-9._-]{1,64}$/.test(slug)) throw new Error(`invalid session name: '${slug}'`);
   const controlSlug = repoId ? `${repoId}--${slug}` : slug;
@@ -144,9 +159,12 @@ export function start({
   run(['set-option', '-t', tmuxName(controlSlug), OPT_AGENT, agent], { allowFail: true });
   run(['set-option', '-t', tmuxName(controlSlug), OPT_CWD, cwd], { allowFail: true });
   run(['set-option', '-t', tmuxName(controlSlug), OPT_SLUG, slug], { allowFail: true });
+  run(['set-option', '-t', tmuxName(controlSlug), OPT_STARTED, String(Math.floor(Date.now() / 1000))], { allowFail: true });
+  run(['set-option', '-t', tmuxName(controlSlug), OPT_ROLE, role], { allowFail: true });
   if (repoId) run(['set-option', '-t', tmuxName(controlSlug), OPT_REPO, repoId], { allowFail: true });
   if (component) run(['set-option', '-t', tmuxName(controlSlug), OPT_COMPONENT, component], { allowFail: true });
   if (front) run(['set-option', '-t', tmuxName(controlSlug), OPT_FRONT, front], { allowFail: true });
+  if (runId) run(['set-option', '-t', tmuxName(controlSlug), OPT_RUN, runId], { allowFail: true });
   return { existed: false, tmux: tmuxName(controlSlug), controlSlug, agent };
 }
 
@@ -162,14 +180,14 @@ export function capture(slug, { lines = 200, run = tmux } = {}) {
 /** Free text: literal, so tmux never interprets it. Enter goes separately. */
 export function sendText(slug, text, { enter = true, run = tmux } = {}) {
   if (typeof text !== 'string' || !text.length) throw new Error('empty text');
-  clearWrapup(slug, { run });
+  clearLifecycleRequests(slug, { run });
   run(['send-keys', '-t', tmuxName(slug), '-l', text]);
   if (enter) run(['send-keys', '-t', tmuxName(slug), 'Enter']);
 }
 
 export function sendKey(slug, key, { run = tmux } = {}) {
   if (!KEYS.has(key)) throw new Error(`key not allowed: ${key}`);
-  clearWrapup(slug, { run });
+  clearLifecycleRequests(slug, { run });
   run(['send-keys', '-t', tmuxName(slug), key]);
 }
 
@@ -180,6 +198,15 @@ export function sendKey(slug, key, { run = tmux } = {}) {
  */
 export function clearWrapup(slug, { run = tmux } = {}) {
   run(['set-option', '-t', tmuxName(slug), '-u', OPT_WRAPUP], { allowFail: true });
+}
+
+export function clearPause(slug, { run = tmux } = {}) {
+  run(['set-option', '-t', tmuxName(slug), '-u', OPT_PAUSE], { allowFail: true });
+}
+
+export function clearLifecycleRequests(slug, { run = tmux } = {}) {
+  clearWrapup(slug, { run });
+  clearPause(slug, { run });
 }
 
 /**
@@ -197,12 +224,52 @@ export function askToWrapUp(slug, {
   now = () => Math.floor(Date.now() / 1000),
   wait = breathe,
 } = {}) {
-  const session = sessions(run).find((s) => s.slug === slug);
+  const session = sessions(run).find((s) => s.controlSlug === slug || s.slug === slug);
   if (!session) throw new Error('this session was not started here: it can be watched, not driven');
-  run(['send-keys', '-t', tmuxName(slug), '-l', order]);
+  const target = session.controlSlug;
+  clearPause(target, { run });
+  run(['send-keys', '-t', tmuxName(target), '-l', order]);
   wait(250);
-  run(['send-keys', '-t', tmuxName(slug), 'Enter']);
-  run(['set-option', '-t', tmuxName(slug), OPT_WRAPUP, String(now())], { allowFail: true });
+  run(['send-keys', '-t', tmuxName(target), 'Enter']);
+  run(['set-option', '-t', tmuxName(target), OPT_WRAPUP, String(now())], { allowFail: true });
+  return { agent: session.agent, order };
+}
+
+/**
+ * Cooperative pause. The process is deliberately left alive: the agent gets a
+ * chance to finish the smallest safe unit and write a handoff, while tmux keeps
+ * the exact conversation available for a later resume.
+ */
+export function askToPause(slug, {
+  order = 'Please pause here safely: finish the smallest coherent unit, save or commit any work that must not be lost, write a short handoff, and do not start anything new.',
+  run = tmux,
+  now = () => Math.floor(Date.now() / 1000),
+  wait = breathe,
+} = {}) {
+  const session = sessions(run).find((s) => s.controlSlug === slug || s.slug === slug);
+  if (!session) throw new Error('this session was not started here: it can be watched, not driven');
+  const target = session.controlSlug;
+  clearWrapup(target, { run });
+  run(['send-keys', '-t', tmuxName(target), '-l', order]);
+  wait(250);
+  run(['send-keys', '-t', tmuxName(target), 'Enter']);
+  run(['set-option', '-t', tmuxName(target), OPT_PAUSE, String(now())], { allowFail: true });
+  return { agent: session.agent, order };
+}
+
+export function resume(slug, {
+  order = 'Please resume from the saved handoff and continue with the current task.',
+  run = tmux,
+  wait = breathe,
+} = {}) {
+  const session = sessions(run).find((s) => s.controlSlug === slug || s.slug === slug);
+  if (!session) throw new Error('this session was not started here: it can be watched, not driven');
+  if (session.error) throw new Error('the agent exited; start the session again instead');
+  const target = session.controlSlug;
+  clearLifecycleRequests(target, { run });
+  run(['send-keys', '-t', tmuxName(target), '-l', order]);
+  wait(250);
+  run(['send-keys', '-t', tmuxName(target), 'Enter']);
   return { agent: session.agent, order };
 }
 
