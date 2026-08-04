@@ -1,318 +1,261 @@
 # Handraise
 
-**Understand the system. Design the work. Run the agents.**
+<p align="center">
+  <img src="site/assets/handraise-social.png" alt="Handraise — Understand the system. Design the work. Run the agents." width="100%">
+</p>
 
-If you run more than one coding agent at a time, the thing that breaks your day
-isn't the agents — it's walking terminal to terminal to find the one sitting
-there waiting for permission.
+<p align="center">
+  <strong>A local-first agentic software workbench for understanding a codebase, designing executable work, and safely running coding agents.</strong>
+</p>
 
-Handraise puts them in one view: what each one is doing, how long it has been at
-it, and the permission request as something you answer right there. Repositories
-are the boundary, so every repo keeps its own components, work fronts and
-sessions. When the status is not enough, the live terminal is one click away and
-you can type into it.
+<p align="center">
+  <a href="https://handraise.pages.dev/">Website</a> ·
+  <a href="#quickstart">Quickstart</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-It runs entirely on your machine, on top of tmux. Closing the browser kills
-nothing — the sessions are tmux sessions, so you can `tmux attach` from any
-terminal and carry on.
+<p align="center">
+  <img alt="Public preview" src="https://img.shields.io/badge/status-public_preview-F36B2B">
+  <img alt="Node.js 20 or newer" src="https://img.shields.io/badge/node-%E2%89%A520-339933?logo=nodedotjs&logoColor=white">
+  <img alt="Claude Code and Codex" src="https://img.shields.io/badge/agents-Claude_Code_%2B_Codex-171512">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-22B99A"></a>
+</p>
 
+Handraise turns repository evidence and product intent into reviewable system
+maps, durable work contracts, and controlled agent runs. It keeps the entire
+loop on your machine, uses the provider CLIs you already trust, and leaves every
+important state transition under human control.
+
+```text
+repository + history + product intent
+                  │
+                  ▼
+  Understand ──► Design ──► Review ──► Run ──► Reconcile
+    evidence      drafts     accept     agents     learning
 ```
-┌─ api ───────────────── needs you · 40s ─┐  ┌─ web ──────────────── working ─┐
-│ claude · ~/code/api                     │  │ codex · ~/code/web             │
-│ ┌─────────────────────────────────────┐ │  │ seen 0m ago                    │
-│ │ Bash: npm run migrate -- --force    │ │  └────────────────────────────────┘
-│ │           [ Allow once ]  [ Deny ]  │ │
-│ └─────────────────────────────────────┘ │
-└─────────────────────────────────────────┘
-```
 
-## Install from source
+Agents run in real `tmux` sessions, so closing the browser never kills them.
+When a session needs attention, Handraise surfaces the reason, the exact
+permission request, and the live terminal in one place.
+
+## Why Handraise
+
+### Understand the system
+
+- Create bounded, read-only snapshots of a repository.
+- Explore modules, dependencies, interfaces, tests, data, deployables, and
+  change coupling with evidence and uncertainty attached.
+- Use the built-in analyzer everywhere, with optional richer local analysis
+  through an existing compatible Graphify installation.
+
+### Design the work
+
+- Keep product direction separate from facts inferred from code.
+- Compare responsibility-oriented component boundaries and outcome-oriented
+  front plans before accepting either.
+- Review exact diffs and publish accepted Markdown contracts transactionally;
+  drafts never silently become repository truth.
+
+### Run the agents
+
+- Launch Claude Code and Codex in isolated worktrees with repository, component,
+  front, dependency, and verification context.
+- See working, idle, blocked, and permission states across repositories.
+- Answer typed permission requests, open live terminals, and request graceful
+  wrap-up without guessing from terminal output.
+- Preserve run evidence and feed discoveries back into an explicit review loop.
+
+## Quickstart
+
+### Requirements
+
+- [Node.js](https://nodejs.org/) 20 or newer and npm
+- [tmux](https://github.com/tmux/tmux/wiki)
+- Python 3 for the attention and permission hooks
+- Git
+- An installed and authenticated [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+  or [Codex](https://developers.openai.com/codex/) CLI
+
+### Install from source
 
 ```bash
 git clone https://github.com/martin882003/handraise.git
 cd handraise
-npm install
+npm ci
 npm run build
 npm link
+```
+
+Install the agent hooks, check the host, connect a repository, and start the
+local server:
+
+```bash
 handraise hooks install
+handraise doctor
 handraise repo add ~/code/my-project
 handraise serve
 ```
 
-Open `http://127.0.0.1:4177` on the server host. Direct loopback access is the
-implicit server-host client, so it enters immediately and never creates a paired
-device record. A browser reaching Handraise over LAN, tailnet, a public URL or a
-tunnel enters the one-time code printed by `handraise serve`; it receives a
-revocable, HTTP-only client session and the code expires after five minutes.
+Open [http://127.0.0.1:4177](http://127.0.0.1:4177). A browser on the same host
+is admitted as the implicit local client; remote clients must pair explicitly.
 
-From **Settings → Pair another client**, choose how the other client will reach
-the server. **Private network** lists this computer's LAN/tailnet addresses and
-only enables its QR when Handraise is listening on that address; when the server
-is still localhost-only, the dialog shows the exact foreground and service
-restart commands. **Internet** requires the HTTPS URL of an already-running
-tunnel or reverse proxy. When `cloudflared` is installed, the server-host client
-can explicitly create and stop a temporary Cloudflare Quick Tunnel directly in
-that dialog; Handraise waits for the provider URL before enabling its QR. An
-existing HTTPS origin remains available as the advanced path.
+> The hooks are inert outside sessions started by Handraise. They preserve
+> unrelated Claude Code and Codex configuration, and installation, repair, and
+> removal are idempotent.
 
-Connect a repository in Settings. A native v2 front uses **Review run
-preflight** to cross from an accepted plan into execution; **New session** stays
-available for general and legacy work. The CLI remains available for scripting
-and expert flows:
+### Start an agent from the CLI
+
+The browser provides the guided workflow. The CLI remains useful for scripting
+and direct operation:
 
 ```bash
-handraise start api --dir ~/code/my-project --component backend --front auth
-handraise start web --dir ~/code/my-project --agent codex --effort xhigh
+handraise start api \
+  --dir ~/code/my-project \
+  --component backend \
+  --front authentication \
+  --agent codex \
+  --effort high
 ```
 
-Requires **tmux**, **Node 20+** and **python3**. Claude Code and Codex are the two
-supported client integrations, with declared terminal, lifecycle, permission
-and graceful-wrap-up capabilities. An arbitrary `--command` is intentionally a
-CLI-only escape hatch rather than an advertised browser integration.
-`cloudflared` is optional and enables one-click temporary Internet tunnels.
+## How it works
 
-## Repositories and agent settings
+Handraise deliberately separates five kinds of state:
 
-Handraise keeps global settings in `~/.handraise`, but operational data belongs
-to the repository that produced it:
+| State | Meaning | Storage |
+|---|---|---|
+| Observed | Source, history, topology, and runtime evidence | Private local snapshots |
+| Declared | Product goals, constraints, terminology, and priorities | Accepted repository contracts |
+| Proposed | Generated maps, architectures, and plans | Private local drafts |
+| Accepted | Human-reviewed components, fronts, and releases | Versionable Markdown in `.handraise/` |
+| Execution | Sessions, worktrees, checks, permissions, and outcomes | `tmux`, Git, and local run records |
 
-- Existing Director repositories are read through their component, front and
-  live-lane metadata. Mutations use Director's validated helpers or remain
-  explicitly read-only; Handraise never edits Director Markdown as a shortcut.
-- New repositories can initialize a small `.handraise/` directory. An optional
-  read-only discovery pass proposes responsibility-oriented components with
-  evidence and uncertainty, and writes nothing until the reviewed set is
-  explicitly accepted.
-- Native components and fronts have editable contracts, ordered checklists and
-  explicit lifecycle states. Their writes are serialized and atomic.
-- Session metadata records the repository, component and front in tmux. Two
-  repositories can use the same session name without colliding.
-- A front can own an isolated Git worktree and branch. The client surfaces dirty,
-  ahead, behind, branch-mismatch and local-only commit risks before removal or
-  lifecycle actions.
-- Claude Code and Codex use the CLI authentication already present on the
-  machine. Settings can define global model/effort defaults and override them
-  for an individual repository. If an installed CLI is not authenticated,
-  **Connect Claude Code** or **Connect Codex** opens its first-party login in a
-  controllable setup terminal and refreshes status after sign-in; no provider
-  credential is copied into Handraise.
+The core transition is guarded in both the server and the UI:
 
-Useful commands:
-
-```bash
-handraise repo list
-handraise repo add ~/code/another-project
-handraise list
-handraise doctor
-handraise server status
-handraise hooks status
-handraise service install    # Linux/systemd user service
-handraise auth reset --yes   # recovery: revoke every paired remote client
+```text
+OBSERVE ──► PROPOSE ──► REVIEW ──► ACCEPT ──► EXECUTE ──► RECONCILE
+read-only     drafts      human      atomic      isolated      suggested
+evidence      only        edits      publish     runtime       changes
 ```
 
-## Understand and design before agents run
+- Accepted contracts are Markdown-first and reviewable in Git.
+- Derived graphs, model transcripts, job logs, and drafts stay under
+  `~/.handraise/` rather than becoming repository truth.
+- Planning cannot allocate a worktree or start an agent as a side effect.
+- A run must pass revision, dependency, ownership, capability, and Git safety
+  checks before execution begins.
+- Runtime observations can propose changes; they cannot silently rewrite
+  accepted intent.
 
-From a repository's **Components** page, **Analyze repository** builds an exact,
-private, read-only snapshot. The built-in inventory always works; an existing
-compatible Graphify installation adds a richer local code graph without
-installing anything or writing `graphify-out/` into the repository.
+## Agent and repository support
 
-The repository's **Map** view turns that immutable snapshot into bounded
-responsibility, module, deployable, dependency, interface, data, test, external
-system and change-coupling lenses. Every grouping exposes its evidence,
-provenance, uncertainty and alternatives. Missing capabilities remain visible,
-and the map is always labeled derived—not an accepted component model. Search,
-neighborhoods, reverse dependencies, snapshot comparison and Markdown/JSON
-export stay read-only. The contract and limits are documented in
-[docs/SEMANTIC_SYSTEM_MAP.md](docs/SEMANTIC_SYSTEM_MAP.md).
+| Capability | Current support |
+|---|---|
+| Agent execution | Claude Code and Codex |
+| Attention and typed permissions | Claude Code and Codex through user-level hooks |
+| Model-assisted planning | Codex CLI using its existing ChatGPT authentication |
+| Repository analysis | Built-in local analyzer; compatible Graphify installations are optional |
+| Native repositories | Read/write `.handraise/` contracts with reviewed publication |
+| Director repositories | Existing contracts are detected; unsupported mutations remain read-only |
+| Persistent service | Linux user service through systemd |
+| Desktop notifications | Optional on Linux through `notify-send` |
 
-**Design architecture** turns a selected map plus accepted product direction
-into a private component-design workspace. It compares responsibility-first,
-deployable/hybrid, current accepted and optional validated-model alternatives;
-shows coverage, cohesion, coupling, overlap, cycles and orphan evidence; and
-lets you answer boundary questions, edit every component-v2 field, lock,
-reorder, split, merge, add, delete, compare, regenerate or skip. Every field
-links back to evidence/intent or exposes its assumption, and no repository
-contract is written or published from this workspace. The implemented boundary
-is documented in
-[docs/COMPONENT_ARCHITECTURE_DESIGNER.md](docs/COMPONENT_ARCHITECTURE_DESIGNER.md).
+Provider credentials are never copied into Handraise. If model-assisted
+planning would send selected source outside the machine, the server-host client
+must review the exact snippets, byte count, provider, model, and destination
+before authorizing it.
 
-**Plan fronts** then combines one reviewed component alternative with an
-accepted or explicit partial product goal. It proposes parallel outcome slices
-and a risk-first vertical alternative, routes genuine unknowns into
-decision/research work, and shows the hard-dependency DAG, ready set, critical
-path, safe concurrency and ownership/territory collisions. Every complete
-front-v2 field is editable, grounded and lockable; portfolios can be compared,
-reordered, split, merged, extended, regenerated or skipped. This workspace also
-remains private—no accepted Markdown, worktree or agent exists until the later
-publication boundary. See
-[docs/FRONT_PLANNING_ASSISTANT.md](docs/FRONT_PLANNING_ASSISTANT.md).
+## CLI reference
 
-**Review publication** is the sole acceptance boundary. It offers explicit
-components-only, product-plus-components and complete-plan scopes, renders the
-exact byte and relationship diff, binds confirmation to one authenticated
-client and one revision, then revalidates source/snapshot/baselines under a
-repository lock. Native writes are journaled, rollback-safe, crash-recoverable
-and idempotent; unsupported Director atomicity fails read-only. No worktree or
-agent starts as a side effect. See
-[docs/TRANSACTIONAL_PLAN_PUBLICATION.md](docs/TRANSACTIONAL_PLAN_PUBLICATION.md).
+| Command | Purpose |
+|---|---|
+| `handraise serve` | Start the local server on `127.0.0.1:4177` |
+| `handraise server status` | Check health and runtime readiness |
+| `handraise repo add <path>` | Connect a Git repository |
+| `handraise repo list` | List connected repositories |
+| `handraise start <name> [options]` | Start or reconnect an agent session |
+| `handraise list` | List live Handraise sessions |
+| `handraise doctor` | Diagnose dependencies, agents, auth, hooks, and runtime state |
+| `handraise hooks status` | Inspect the Claude Code and Codex integrations |
+| `handraise service install` | Install and start the Linux user service |
+| `handraise auth reset --yes` | Revoke every paired remote client |
 
-Open an accepted native v2 front and choose **Review run preflight** to inspect
-the exact contract/component/goal revisions, dependency and ownership state,
-agent capability snapshot, Git workspace revision and complete bounded prompt.
-The review is read-only. The same authenticated client must confirm its exact
-revision before Handraise creates or reuses a worktree and starts tmux. Runtime
-activity, agent claims, reviewed checks, discoveries, handoffs and accepted
-completion remain separate; completion fails while the process is active or
-checklist, acceptance, verification or Git evidence is unsafe. See
-[docs/PLAN_DRIVEN_AGENT_ORCHESTRATION.md](docs/PLAN_DRIVEN_AGENT_ORCHESTRATION.md).
+## Remote access
 
-After a later read-only snapshot, **Architecture reconciliation** separates
-content/graph change from analyzer and inference change, then traces stale
-evidence, boundary crossings, unowned/overlapping territory, new system surfaces
-and run discoveries into affected product claims, components, fronts and runs.
-Findings retain confidence, provenance, alternatives and stable decision memory.
-Dismiss, defer and accept-for-planning are private review outcomes: accepted
-contracts remain byte-identical until a separate reviewed publication. Plan
-publication and run completion only recommend an explicit refresh; they never
-start analysis by themselves. See
-[docs/CONTINUOUS_ARCHITECTURE_RECONCILIATION.md](docs/CONTINUOUS_ARCHITECTURE_RECONCILIATION.md).
+Handraise binds to loopback by default and does not provide a hosted relay.
+From **Settings → Pair another client**, the server-host client can create a
+short-lived QR/code for a private-network or HTTPS origin.
 
-**Outcome learning proposals** then correlate exact accepted run/check evidence
-and reviewed drift with exact product/component/front revisions. Discoveries
-and agent claims retain their weaker authority. Users can dismiss, defer,
-reopen, give private feedback or route a current proposal into the existing
-product, component or front editor; accepted contracts still change only through
-explicit transactional publication. Feedback adjusts inspectable local ranking
-only. There is no telemetry: an optional anonymized benchmark payload requires
-an exact host-only preview and confirmation, then downloads locally without an
-external request. See
-[docs/OUTCOME_LEARNING_LOOP.md](docs/OUTCOME_LEARNING_LOOP.md).
-
-Planning releases are measured by a versioned executable benchmark, not by
-model confidence. Ten synthetic repository classes exercise the real snapshot,
-map, component, front, contract and reconciliation boundaries; hard safety,
-evidence, mutation, schema and security failures have zero tolerance. The
-checked report publishes exact versions, baseline/current attribution and
-limitations without retaining source. Independent blind owner reviews remain a
-separate required Gate C, so a missing human phase is reported as `blocked` and
-prevents package promotion. See
-[docs/PLANNING_QUALITY_EVALUATION.md](docs/PLANNING_QUALITY_EVALUATION.md) and the
-[latest benchmark report](benchmark/results/latest.md).
-
-**Design with model** can then combine a selected snapshot with accepted product
-direction, current components/fronts and one explicit planning request. Before
-anything leaves the machine, the server-host browser shows every selected
-snippet, digest, byte count, provider/model and destination. A paired remote
-browser cannot authorize this transfer. The result is schema-validated,
-evidence-grounded and retained as a private proposal—nothing is initialized,
-accepted or published implicitly, and manual component/front editing always
-remains available.
-
-The first supported planning adapter is an audited Codex CLI version using the
-CLI's existing ChatGPT authentication; provider credentials are not copied into
-Handraise. Claude Code planning appears honestly unavailable for now because its
-minimal isolated mode cannot reuse OAuth/keychain authentication. This does not
-affect normal Claude Code sessions or their first-time login flow. The full
-boundary and version policy is documented in
-[docs/PLANNING_MODEL_RUNTIME.md](docs/PLANNING_MODEL_RUNTIME.md).
-
-## What the two hooks do
-
-Everything above works without them except the two things that matter most, so
-`install-hooks` is not optional decoration:
-
-- **attention** — turns lifecycle events into "this session is waiting on you,
-  since when, and why", plus a desktop notification. It deliberately stays quiet
-  for short turns: notifying on every turn makes the session you're already
-  looking at a source of noise.
-- **permission** — `PermissionRequest` is synchronous, so the agent genuinely
-  waits for the answer. The request becomes a typed JSON file, you press a button
-  in the browser, and the hook returns `allow` or `deny`. **No keystrokes are
-  guessed and no screen is parsed** — you're answering the request itself.
-
-Both hooks are wired for Claude Code and Codex at user level and are inert
-outside Handraise: the
-attention hook returns unless tmux carries our prefix, and the permission hook
-returns unless `HANDRAISE=1` is set, which only `handraise start` does. Sessions you
-open in your own terminal keep their native dialog and never wait on a browser
-you aren't looking at.
-
-Install, repair and uninstall are idempotent and preserve unrelated hook entries.
-The first Claude settings update also saves
-`~/.claude/settings.json.handraise-backup`; Codex asks for one explicit trust
-review through `/hooks` after an install or repair.
-
-## Runtime guarantees
-
-The control path follows a few strict rules:
-
-- **The pane's output never decides whether a session is waiting on you.**
-  Drawing a dialog produces output too, so "it printed something recently" would
-  hide a real wait. Only lifecycle events move a session in and out of waiting.
-- **Activity comes from tmux `window_activity`, not `session_activity`.** The
-  session one freezes when the session is created, so an agent that's working
-  looks idle.
-- **A permission request with no live process behind it is dropped, not shown.**
-  The hook seals each request with its pid, process start time and boot id. A
-  button that decides nothing is worse than no button.
-- **Free text is always sent literally** (`send-keys -l`) and the special keys
-  are a closed list. `send-keys` without a filter is arbitrary execution.
-- **Wrapping up is asking, not killing.** The session is told to finish, and the
-  panel waits for a real signal — the harness saying it's done, or the pane going
-  quiet — never a timer.
-
-## Security and pairing
-
-Handraise binds to `127.0.0.1` by default and has no relay. The first browser is
-implicit only when both its socket peer and exact HTTP Host are loopback
-(`127.0.0.1`, `localhost` or `::1`). Forwarding headers are never trusted for
-this decision. Every remote client pairs with a short-lived terminal code or a
-one-time QR/code from Settings. Session tokens are random, stored only as SHA-256
-hashes on disk, sent in `HttpOnly`/`SameSite=Strict` cookies and revocable per
-client. Unsafe cross-origin API requests are rejected.
-
-Keep it on localhost unless remote access is intentional. Direct private-network
-pairing requires listening on a private interface (for example with `--host
-0.0.0.0`) and should be used only on a trusted network. Internet access uses
-either an explicitly started managed Quick Tunnel or an existing HTTPS tunnel or
-reverse proxy. Only the implicit server-host client may start or stop managed
-public exposure. The panel can type into and stop real agent sessions on your
-machine, so do not expose the raw HTTP listener publicly.
-
-## Open it from your phone
-
-The interface is responsive and installable from the browser as a home-screen
-app. For private access away from the workstation, keep Handraise bound to
-localhost and use [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve):
+For private access from another device, place an authenticated network layer in
+front of the loopback server. For example, with Tailscale:
 
 ```bash
 handraise serve
 tailscale serve --bg http://127.0.0.1:4177
 ```
 
-Open the HTTPS URL reported by Tailscale on a phone in the same tailnet. Tailnet
-access controls stay in front of Handraise, and Handraise still requires a paired
-client. The first remote client can use the code printed by the server; additional
-clients can use Settings from that reachable origin. You can also restart with
-`HANDRAISE_PUBLIC_URL=https://<tailscale-name>` so locally generated QR codes use
-the tailnet URL.
+An optional `cloudflared` installation enables supervised temporary Quick
+Tunnels from Settings. Direct `--host 0.0.0.0` binding is intended only for a
+trusted private network. Never expose the raw HTTP listener to the public
+Internet: Handraise can control real processes on your machine.
 
-For temporary Internet access without Tailscale on the phone, install
-`cloudflared`, open Handraise locally and choose **Pair another client → Internet
-→ Create temporary tunnel**. Handraise supervises the connector, displays its
-random HTTPS URL and enables the one-time QR; reopening the dialog lets the
-server-host client stop it. The tunnel also stops with Handraise. Quick Tunnels
-are public, pass traffic through Cloudflare, have no uptime guarantee and are
-appropriate for testing or short-lived access rather than production; see the
-[Cloudflare Quick Tunnel contract](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/).
-Because that mode does not transport SSE, the client automatically falls back
-to authenticated polling for live state.
+Remote clients receive revocable HTTP-only sessions after pairing. Unsafe
+cross-origin API requests are rejected, and only the implicit server-host client
+can authorize host-sensitive operations such as source transfer or managed
+public exposure.
 
-## Status
+## Development
 
-Public preview. Fleet verdicts, repository planning, assisted discovery,
-worktree ownership, session lifecycle, typed permissions, remote pairing and
-offline-safe PWA behavior are live. Issues and PRs are welcome.
+Install dependencies and build the client once:
 
-MIT.
+```bash
+npm ci
+npm run build
+```
+
+For local development, run the API and Vite client in separate terminals:
+
+```bash
+npm start
+npm run dev:ui
+```
+
+Before submitting a change, run the same core checks used by the package gate:
+
+```bash
+npm run build
+npm run typecheck
+npm test
+npm run benchmark:gate
+```
+
+The benchmark is versioned and evidence-based. Hard safety, schema, mutation,
+and provenance failures have zero tolerance; model confidence is not accepted
+as release evidence.
+
+## Documentation
+
+| Topic | Document |
+|---|---|
+| Product thesis and boundaries | [Product vision](docs/PRODUCT_VISION.md) |
+| Delivery order and current milestones | [Product roadmap](docs/PRODUCT_ROADMAP.md) |
+| System design and state model | [Product architecture](docs/PRODUCT_ARCHITECTURE.md) |
+| Functional and quality contracts | [Product requirements](docs/PRODUCT_REQUIREMENTS.md) |
+| Read-only evidence and system maps | [Repository intelligence](docs/REPOSITORY_INTELLIGENCE_CONTRACT.md) and [semantic system map](docs/SEMANTIC_SYSTEM_MAP.md) |
+| Component/front design and publication | [Component designer](docs/COMPONENT_ARCHITECTURE_DESIGNER.md), [front planner](docs/FRONT_PLANNING_ASSISTANT.md), and [transactional publication](docs/TRANSACTIONAL_PLAN_PUBLICATION.md) |
+| Agent execution and feedback | [Plan-driven orchestration](docs/PLAN_DRIVEN_AGENT_ORCHESTRATION.md) and [outcome learning](docs/OUTCOME_LEARNING_LOOP.md) |
+| Quality gate and latest evidence | [Planning quality evaluation](docs/PLANNING_QUALITY_EVALUATION.md) and [latest benchmark](benchmark/results/latest.md) |
+
+## Project status
+
+Handraise is an open-source public preview. The core local workflow is usable,
+while release hardening, the integrated Understand → Design → Run experience,
+and multi-repository product coordination continue to evolve. APIs and
+repository schemas may change before the first stable release.
+
+Issues and pull requests are welcome. Please include the relevant verification
+evidence with behavior changes.
+
+## License
+
+[MIT](LICENSE) © Martín Herrán
